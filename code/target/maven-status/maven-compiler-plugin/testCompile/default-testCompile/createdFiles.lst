@@ -1,0 +1,5 @@
+com/enterprise/agentapi/application/CustomerReportJobServiceTest.class
+com/enterprise/agentapi/application/CatalogGovernanceServiceTest.class
+com/enterprise/agentapi/agent/ExecutionBudgetServiceTest.class
+com/enterprise/agentapi/application/TransactionSearchServiceTest.class
+com/enterprise/agentapi/application/SubscriptionCancellationServiceTest.class
