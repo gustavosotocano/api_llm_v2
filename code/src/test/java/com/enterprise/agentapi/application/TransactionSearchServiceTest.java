@@ -88,6 +88,14 @@ class TransactionSearchServiceTest {
     }
 
     @Test
+    void missingUserIdIsNotAssumed() {
+        var response = service.searchRecurringPayments(new RecurringPaymentSearchRequest(
+                null, "STREAMING", null, PeriodOption.LAST_3_MONTHS, 100));
+        assertThat(response.status()).isEqualTo(SemanticStatus.INSUFFICIENT_PERMISSIONS);
+        assertThat(response.message()).contains("userId is required");
+    }
+
+    @Test
     void missingCategoryAndMerchantRequiresClarification() {
         var response = service.searchRecurringPayments(new RecurringPaymentSearchRequest(
                 "user-123", null, null, PeriodOption.LAST_3_MONTHS, 100));

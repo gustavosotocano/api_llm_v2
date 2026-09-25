@@ -50,9 +50,12 @@ public class SubscriptionCancellationService implements SubscriptionCommandApi {
         var userId = normalizeUserId(request.userId());
         var denied = IdentityGuard.authorizeUserResource(userId);
         if (denied != null) {
-            return response(denied, "Current identity cannot cancel another user's subscription.",
+            var message = userId == null
+                    ? "userId is required. The backend does not assume an account."
+                    : "Current identity cannot cancel another user's subscription.";
+            return response(denied, message,
                     userId, request.merchant(), request.idempotencyKey(), null, null, null,
-                    List.of("Use the authenticated userId"));
+                    List.of("Pass the authenticated userId"));
         }
 
         var merchant = normalizeMerchant(request.merchant());
@@ -147,7 +150,7 @@ public class SubscriptionCancellationService implements SubscriptionCommandApi {
     }
 
     private String normalizeUserId(String userId) {
-        return isBlank(userId) ? "user-123" : userId.trim();
+        return isBlank(userId) ? null : userId.trim();
     }
 
     private String normalizeMerchant(String merchant) {

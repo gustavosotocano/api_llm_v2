@@ -16,7 +16,7 @@ User → Agent / LLM runtime → Agent-facing layer (MCP tools)
 
 | Patrón V2 | Dónde |
 |---|---|
-| Capa agent-facing + MCP | `POST /api/mcp` — 6 tools sobre APIs de empresa en `/api/banking` |
+| Capa agent-facing + MCP | `POST /api/mcp` — 7 tools sobre APIs de empresa en `/api/banking` |
 | Contratos tipados y estados semánticos | `SemanticStatus` |
 | Identidad delegada + autorización | `IdentityGuard` + scopes; `SERVICE` no es cuenta privilegiada |
 | Confirmación humana en writes | `OPERATION_REQUIRES_CONFIRMATION` + `confirmationToken` |
@@ -24,7 +24,7 @@ User → Agent / LLM runtime → Agent-facing layer (MCP tools)
 | Catálogo gobernado | `proposeCatalogChange` + REST humana |
 | Observabilidad de 3 capas | logger `AGENT_AUDIT`: TECHNICAL / AI / BUSINESS |
 | Rate limit ≠ presupuesto | `RATE_LIMITED` / `AGENT_LOOP_DETECTED` vs `BUDGET_EXCEEDED` |
-| Jobs asíncronos explícitos | `startCustomerReport` → `getJobStatus` → `getJobResult` |
+| Jobs asíncronos explícitos | `startCustomerReport` → `getJobStatus` → `getJobResult`; `cancelCustomerReport` pasa a `CANCELLED` |
 | Contexto no confiable + procedencia | resources y tool results con `provenance`; `AgentWorkflow` limita tools |
 | Versionado de contrato de tools | `toolVersion=2.0.0` en auditoría |
 
@@ -141,7 +141,7 @@ El backend, no el texto recuperado, es el perímetro de seguridad:
 
 - Cada resource MCP y cada tool result va envuelto en `provenance` (`source_type`, `trust_level`, `may_grant_permission=false`).
 - Los resultados de tools son `untrusted_content` por defecto. El `status` semántico es el único campo de plataforma que el agente debe usar para decidir el siguiente paso.
-- El workflow por defecto es `READ`. `CANCELLATION`, `GOVERNANCE`, `REPORT` y `FULL` se pasan explícitamente (chat usa `FULL`; MCP sin meta queda en `READ`).
+- El workflow por defecto es `READ`. `CANCELLATION`, `GOVERNANCE`, `REPORT` y `FULL` se pasan explícitamente. MCP sin meta queda en `READ`. `/ai/chat` infiere el workflow del mensaje, o usa el campo `workflow` si el caller lo envía.
 - Un memo de merchant o un resource no puede saltarse `confirmationToken` ni mutar el catálogo.
 
 ## Evals (capítulo 6)

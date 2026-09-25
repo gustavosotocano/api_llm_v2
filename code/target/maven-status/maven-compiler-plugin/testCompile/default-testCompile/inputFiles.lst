@@ -1,5 +1,22 @@
-/Users/gustavosoto1/Documents/personal/Enterprise API/V.2/code/src/test/java/com/enterprise/agentapi/agent/ExecutionBudgetServiceTest.java
-/Users/gustavosoto1/Documents/personal/Enterprise API/V.2/code/src/test/java/com/enterprise/agentapi/application/CatalogGovernanceServiceTest.java
-/Users/gustavosoto1/Documents/personal/Enterprise API/V.2/code/src/test/java/com/enterprise/agentapi/application/CustomerReportJobServiceTest.java
-/Users/gustavosoto1/Documents/personal/Enterprise API/V.2/code/src/test/java/com/enterprise/agentapi/application/SubscriptionCancellationServiceTest.java
-/Users/gustavosoto1/Documents/personal/Enterprise API/V.2/code/src/test/java/com/enterprise/agentapi/application/TransactionSearchServiceTest.java
+/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/agent/ExecutionBudgetServiceTest.java
+/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/api/ChatWorkflowResolverTest.java
+/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/application/CatalogGovernanceServiceTest.java
+/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/application/CustomerReportJobServiceTest.java
+/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/application/SubscriptionCancellationServiceTest.java
+/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/application/TransactionSearchServiceTest.java
+/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/AgentEvalSuiteTest.java
+/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/BehavioralEvaluator.java
+/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/BoundaryEvalTest.java
+/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/ContextTrustEvalTest.java
+/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/EvalCriterion.java
+/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/EvalExpectation.java
+/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/EvalHarness.java
+/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/EvalVerdict.java
+/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/GoldenScenario.java
+/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/GoldenScenarios.java
+/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/IdentityEvalTest.java
+/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/RecordingToolListener.java
+/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/ScriptedTurn.java
+/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/ToolContractEvalTest.java
+/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/ToolDescriptionContractTest.java
+/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/observability/AgentAuditServiceTest.java

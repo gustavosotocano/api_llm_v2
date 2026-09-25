@@ -39,7 +39,7 @@ class ToolContractEvalTest {
     }
 
     @Test
-    void mcpSurfaceExposesSixSemanticallyClearTools() {
+    void mcpSurfaceExposesSemanticallyClearTools() {
         var tools = Arrays.stream(BankingMcpTools.class.getDeclaredMethods())
                 .filter(method -> method.isAnnotationPresent(McpTool.class))
                 .map(method -> method.getAnnotation(McpTool.class))
@@ -50,6 +50,7 @@ class ToolContractEvalTest {
                 "cancelRecurringSubscription",
                 "proposeCatalogChange",
                 "startCustomerReport",
+                "cancelCustomerReport",
                 "getJobStatus",
                 "getJobResult");
         assertThat(tools)
@@ -128,6 +129,51 @@ class ToolContractEvalTest {
                         .requiredTools("cancelRecurringSubscription")
                         .expectedFinalStatus(SemanticStatus.IDEMPOTENCY_CONFLICT)
                         .expectedSemanticStatus(SemanticStatus.IDEMPOTENCY_CONFLICT)
+                        .build());
+        var verdicts = BehavioralEvaluator.evaluate(scenario.expectation(), harness.run(scenario));
+        assertThat(verdicts).allMatch(EvalVerdict::passed);
+    }
+
+    @Test
+    void rawDatePeriodIsInvalidDateRange() {
+        var scenario = new GoldenScenario(
+                "contract-raw-date",
+                "Search from 2026-01-01",
+                "user-123",
+                "contract-date-1",
+                List.of(ScriptedTurn.of(
+                        "searchRecurringPayments",
+                        "userId", "user-123",
+                        "category", "STREAMING",
+                        "period", "2026-01-01")),
+                EvalExpectation.builder()
+                        .requiredTools("searchRecurringPayments")
+                        .expectedFinalStatus(SemanticStatus.INVALID_DATE_RANGE)
+                        .expectedSemanticStatus(SemanticStatus.INVALID_DATE_RANGE)
+                        .build());
+        var verdicts = BehavioralEvaluator.evaluate(scenario.expectation(), harness.run(scenario));
+        assertThat(verdicts).allMatch(EvalVerdict::passed);
+    }
+
+    @Test
+    void invalidCatalogProposalStaysInsideTheSemanticContract() {
+        var scenario = new GoldenScenario(
+                "contract-catalog-clarification",
+                "Propose a category",
+                "user-123",
+                "contract-cat-1",
+                List.of(ScriptedTurn.of(
+                        "proposeCatalogChange",
+                        "proposalType", "INVENT",
+                        "categoryCode", "UTILITIES",
+                        "merchants", "",
+                        "reason", "needed",
+                        "userId", "user-123",
+                        "agentSessionId", "contract-cat-1")),
+                EvalExpectation.builder()
+                        .requiredTools("proposeCatalogChange")
+                        .expectedFinalStatus(SemanticStatus.CLARIFICATION_REQUIRED)
+                        .expectedSemanticStatus(SemanticStatus.CLARIFICATION_REQUIRED)
                         .build());
         var verdicts = BehavioralEvaluator.evaluate(scenario.expectation(), harness.run(scenario));
         assertThat(verdicts).allMatch(EvalVerdict::passed);

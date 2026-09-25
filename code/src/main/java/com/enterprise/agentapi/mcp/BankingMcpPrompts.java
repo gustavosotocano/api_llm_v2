@@ -121,6 +121,7 @@ public class BankingMcpPrompts {
                 3. Poll getJobStatus until jobStatus is COMPLETED.
                 4. Then call getJobResult.
                 5. If status is OPERATION_IN_PROGRESS, wait pollAfterSeconds. Do not start a second report.
+                6. If status or jobStatus is CANCELLED, stop. Do not call getJobResult.
                 """.formatted(userId, resolvedPeriod, resolvedSession);
         return promptResult("customer-report-flow", system);
     }

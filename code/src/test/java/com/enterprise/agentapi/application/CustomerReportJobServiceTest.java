@@ -74,4 +74,23 @@ class CustomerReportJobServiceTest {
         var response = service.startReport("user-123", "YESTERDAY");
         assertThat(response.status()).isEqualTo(SemanticStatus.INVALID_PERIOD);
     }
+
+    @Test
+    void rawDateIsInvalidDateRange() {
+        var response = service.startReport("user-123", "2026-01-01");
+        assertThat(response.status()).isEqualTo(SemanticStatus.INVALID_DATE_RANGE);
+        assertThat(response.jobId()).isNull();
+    }
+
+    @Test
+    void cancelMovesAnActiveJobToCancelledAndTheWorkerDoesNotFinishIt() {
+        var accepted = service.startReport("user-123", "LAST_3_MONTHS");
+        var cancelled = service.cancel(accepted.jobId());
+        assertThat(cancelled.status()).isEqualTo(SemanticStatus.CANCELLED);
+        assertThat(cancelled.jobStatus()).isEqualTo(JobStatus.CANCELLED);
+
+        await().pollDelay(Duration.ofMillis(1100)).pollInSameThread().atMost(Duration.ofSeconds(3)).untilAsserted(() ->
+                assertThat(service.status(accepted.jobId()).jobStatus()).isEqualTo(JobStatus.CANCELLED));
+        assertThat(service.result(accepted.jobId()).status()).isEqualTo(SemanticStatus.CANCELLED);
+    }
 }

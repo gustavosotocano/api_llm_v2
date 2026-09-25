@@ -51,7 +51,7 @@ public class DebugController {
     public RecurringPaymentSearchResponse searchRecurring(@RequestBody RecurringPaymentSearchRequest request,
                                                           @RequestHeader(value = "X-Agent-Session-Id", required = false) String agentSessionId) {
         var sessionId = AgentSessionSupport.resolveSessionId(agentSessionId);
-        var userId = request.userId() == null || request.userId().isBlank() ? "user-123" : request.userId();
+        var userId = request.userId() == null || request.userId().isBlank() ? null : request.userId().trim();
         AgentSessionSupport.bind(sessionId, userId, "DEBUG_API", IdentityType.USER_DELEGATED, AgentWorkflow.READ);
         try {
             rateLimiter.checkAllowed(sessionId, "searchRecurringPayments", userId, "DEBUG_API");
@@ -78,7 +78,7 @@ public class DebugController {
             @RequestHeader(value = "X-Agent-Session-Id", required = false) String agentSessionId,
             @RequestHeader(value = "X-Confirmation-Token", required = false) String confirmationTokenHeader) {
         var sessionId = AgentSessionSupport.resolveSessionId(agentSessionId);
-        var userId = request.userId() == null || request.userId().isBlank() ? "user-123" : request.userId();
+        var userId = request.userId() == null || request.userId().isBlank() ? null : request.userId().trim();
         AgentSessionSupport.bind(sessionId, userId, "DEBUG_API", IdentityType.USER_DELEGATED, AgentWorkflow.CANCELLATION);
 
         var idempotencyKey = idempotencyKeyHeader != null && !idempotencyKeyHeader.isBlank()
@@ -127,9 +127,22 @@ public class DebugController {
         }
     }
 
+    @PostMapping("/jobs/{jobId}/cancel")
+    public JobResponse cancelJob(@PathVariable String jobId,
+                                 @RequestParam String userId,
+                                 @RequestHeader(value = "X-Agent-Session-Id", required = false) String agentSessionId) {
+        var sessionId = AgentSessionSupport.resolveSessionId(agentSessionId);
+        AgentSessionSupport.bind(sessionId, userId, "DEBUG_API", IdentityType.USER_DELEGATED, AgentWorkflow.REPORT);
+        try {
+            return reportJobService.cancel(jobId);
+        } finally {
+            AgentSessionSupport.clear();
+        }
+    }
+
     @GetMapping("/jobs/{jobId}")
     public JobResponse jobStatus(@PathVariable String jobId,
-                                 @RequestParam(defaultValue = "user-123") String userId,
+                                 @RequestParam String userId,
                                  @RequestHeader(value = "X-Agent-Session-Id", required = false) String agentSessionId) {
         var sessionId = AgentSessionSupport.resolveSessionId(agentSessionId);
         AgentSessionSupport.bind(sessionId, userId, "DEBUG_API", IdentityType.USER_DELEGATED, AgentWorkflow.REPORT);
@@ -142,7 +155,7 @@ public class DebugController {
 
     @GetMapping("/jobs/{jobId}/result")
     public JobResponse jobResult(@PathVariable String jobId,
-                                 @RequestParam(defaultValue = "user-123") String userId,
+                                 @RequestParam String userId,
                                  @RequestHeader(value = "X-Agent-Session-Id", required = false) String agentSessionId) {
         var sessionId = AgentSessionSupport.resolveSessionId(agentSessionId);
         AgentSessionSupport.bind(sessionId, userId, "DEBUG_API", IdentityType.USER_DELEGATED, AgentWorkflow.REPORT);

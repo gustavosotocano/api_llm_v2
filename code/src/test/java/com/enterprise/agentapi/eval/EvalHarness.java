@@ -124,6 +124,7 @@ public final class EvalHarness {
             case "startCustomerReport" -> operations.startCustomerReport(
                     str(args, "userId"),
                     str(args, "period"));
+            case "cancelCustomerReport" -> operations.cancelCustomerReport(str(args, "jobId"));
             case "getJobStatus" -> operations.getJobStatus(str(args, "jobId"));
             case "getJobResult" -> operations.getJobResult(str(args, "jobId"));
             case "wait" -> sleep(integer(args, "millis") == null ? 1200 : integer(args, "millis"));

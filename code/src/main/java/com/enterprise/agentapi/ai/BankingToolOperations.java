@@ -12,6 +12,7 @@ import com.enterprise.agentapi.enterprise.TransactionQueryApi;
 import com.enterprise.agentapi.domain.CatalogChangeResponse;
 import com.enterprise.agentapi.domain.CatalogProposalType;
 import com.enterprise.agentapi.domain.JobResponse;
+import com.enterprise.agentapi.domain.PeriodExpressions;
 import com.enterprise.agentapi.domain.PeriodOption;
 import com.enterprise.agentapi.domain.RecurringPaymentSearchRequest;
 import com.enterprise.agentapi.domain.RecurringPaymentSearchResponse;
@@ -59,6 +60,13 @@ public class BankingToolOperations {
                     "merchant", merchant,
                     "period", period,
                     "limit", limit), () -> {
+                if (PeriodExpressions.looksLikeDateRange(period)) {
+                    return new RecurringPaymentSearchResponse(
+                            SemanticStatus.INVALID_DATE_RANGE,
+                            "Raw dates are not accepted. Send a semantic period. The backend calculates the range.",
+                            category, List.of(), PeriodExpressions.semanticPeriods(),
+                            null, null, null, List.of(), List.of(), BigDecimal.ZERO, 0);
+                }
                 PeriodOption periodOption;
                 try {
                     periodOption = PeriodOption.valueOf(period);
@@ -66,8 +74,7 @@ public class BankingToolOperations {
                     return new RecurringPaymentSearchResponse(
                             SemanticStatus.INVALID_PERIOD,
                             "Unsupported period. Send a semantic period enum, not raw dates.",
-                            category, List.of(),
-                            List.of("LAST_30_DAYS", "LAST_3_MONTHS", "LAST_6_MONTHS", "CURRENT_MONTH", "PREVIOUS_MONTH"),
+                            category, List.of(), PeriodExpressions.semanticPeriods(),
                             null, null, null, List.of(), List.of(), BigDecimal.ZERO, 0);
                 }
                 var request = new RecurringPaymentSearchRequest(
@@ -123,8 +130,22 @@ public class BankingToolOperations {
                     "reason", reason,
                     "userId", userId,
                     "agentSessionId", agentSessionId), () -> {
-                var type = CatalogProposalType.valueOf(proposalType.trim().toUpperCase());
+                if (proposalType == null || proposalType.isBlank()) {
+                    return clarificationCatalog("proposalType is required.");
+                }
+                CatalogProposalType type;
+                try {
+                    type = CatalogProposalType.valueOf(proposalType.trim().toUpperCase());
+                } catch (IllegalArgumentException ex) {
+                    return clarificationCatalog("proposalType must be NEW_CATEGORY or ADD_MERCHANTS.");
+                }
+                if (merchantsCsv == null || merchantsCsv.isBlank()) {
+                    return clarificationCatalog("merchants is required (comma-separated, e.g. HBO_MAX,APPLE_TV).");
+                }
                 var merchants = parseMerchants(merchantsCsv);
+                if (merchants.isEmpty()) {
+                    return clarificationCatalog("merchants is required (comma-separated, e.g. HBO_MAX,APPLE_TV).");
+                }
                 var response = catalogGovernanceService.propose(
                         type, categoryCode, merchants, reason, agentSessionId, userId);
                 agentToolSupport.logBusinessAction("PROPOSE_CATALOG_CHANGE", response.status(), Map.of(
@@ -138,6 +159,8 @@ public class BankingToolOperations {
             return rateLimitedCatalogChange(ex);
         } catch (BudgetExceededException ex) {
             return budgetExceededCatalogChange(ex);
+        } catch (IllegalArgumentException ex) {
+            return clarificationCatalog(ex.getMessage());
         }
     }
 
@@ -161,6 +184,20 @@ public class BankingToolOperations {
                 var response = reportJobService.status(jobId);
                 agentToolSupport.logBusinessAction("GET_JOB_STATUS", response.status(), Map.of(
                         "jobId", jobId,
+                        "jobStatus", response.jobStatus() == null ? "unknown" : response.jobStatus().name()));
+                return response;
+            });
+        } catch (ToolAccessDeniedException | AgentRateLimitExceededException | BudgetExceededException ex) {
+            return operationalFailure(ex);
+        }
+    }
+
+    public JobResponse cancelCustomerReport(String jobId) {
+        try {
+            return agentToolSupport.execute("cancelCustomerReport", toolParams("jobId", jobId), () -> {
+                var response = reportJobService.cancel(jobId);
+                agentToolSupport.logBusinessAction("CANCEL_CUSTOMER_REPORT", response.status(), Map.of(
+                        "jobId", jobId == null ? "none" : jobId,
                         "jobStatus", response.jobStatus() == null ? "unknown" : response.jobStatus().name()));
                 return response;
             });
@@ -204,6 +241,14 @@ public class BankingToolOperations {
                 SemanticStatus.BUDGET_EXCEEDED, ex.getMessage(), null, List.of(),
                 List.of("Wait for a new session or reduce high-cost tool use"),
                 null, null, null, List.of(), List.of(), BigDecimal.ZERO, 0);
+    }
+
+    private static CatalogChangeResponse clarificationCatalog(String message) {
+        return new CatalogChangeResponse(
+                SemanticStatus.CLARIFICATION_REQUIRED, message,
+                null, null, null, List.of(), null, List.of(),
+                List.of("proposalType: NEW_CATEGORY or ADD_MERCHANTS",
+                        "merchants: comma-separated codes such as HBO_MAX,APPLE_TV"));
     }
 
     private CatalogChangeResponse accessDeniedCatalogChange(ToolAccessDeniedException ex) {
@@ -264,9 +309,6 @@ public class BankingToolOperations {
     }
 
     private static List<String> parseMerchants(String merchantsCsv) {
-        if (merchantsCsv == null || merchantsCsv.isBlank()) {
-            throw new IllegalArgumentException("merchants is required (comma-separated, e.g. HBO_MAX,APPLE_TV)");
-        }
         return Arrays.stream(merchantsCsv.split(","))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())

@@ -112,6 +112,7 @@ public class AgentProperties {
             limits.put("cancelRecurringSubscription", toolLimit(5, 60));
             limits.put("proposeCatalogChange", toolLimit(3, 300));
             limits.put("startCustomerReport", toolLimit(3, 120));
+            limits.put("cancelCustomerReport", toolLimit(5, 60));
             limits.put("getJobStatus", toolLimit(20, 60));
             limits.put("getJobResult", toolLimit(10, 60));
             limits.put("AI_CHAT", toolLimit(10, 60));
@@ -242,6 +243,7 @@ public class AgentProperties {
             costs.put("cancelRecurringSubscription", 5);
             costs.put("proposeCatalogChange", 3);
             costs.put("startCustomerReport", 15);
+            costs.put("cancelCustomerReport", 2);
             costs.put("getJobStatus", 1);
             costs.put("getJobResult", 1);
             costs.put("AI_CHAT", 4);

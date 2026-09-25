@@ -66,7 +66,8 @@ public class BankingReferenceData {
                 "longRunning", List.of(
                         "startCustomerReport returns ACCEPTED + jobId",
                         "Poll getJobStatus until COMPLETED",
-                        "Then call getJobResult"),
+                        "Then call getJobResult",
+                        "cancelCustomerReport moves PENDING or RUNNING to CANCELLED"),
                 "jobStates", List.of("PENDING", "RUNNING", "COMPLETED", "FAILED", "CANCELLED"));
     }
 

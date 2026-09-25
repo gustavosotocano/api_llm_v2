@@ -18,11 +18,14 @@ public class CustomerProfileService implements CustomerProfileApi {
 
     @Override
     public CustomerProfileResponse getProfile(String userId) {
-        var normalized = userId == null || userId.isBlank() ? "user-123" : userId.trim();
+        var normalized = userId == null || userId.isBlank() ? null : userId.trim();
         var denied = IdentityGuard.authorizeUserResource(normalized);
         if (denied != null) {
-            return new CustomerProfileResponse(denied, "Current identity cannot read another user's profile.",
-                    normalized, null, null, null, List.of("Use the authenticated userId"));
+            var message = normalized == null
+                    ? "userId is required. The backend does not assume an account."
+                    : "Current identity cannot read another user's profile.";
+            return new CustomerProfileResponse(denied, message,
+                    normalized, null, null, null, List.of("Pass the authenticated userId"));
         }
         return profiles.find(normalized)
                 .map(record -> new CustomerProfileResponse(

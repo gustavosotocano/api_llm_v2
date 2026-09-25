@@ -108,7 +108,12 @@ public class BankingMcpTools {
 
     @McpTool(
             name = "getJobStatus",
-            description = "Poll a previously accepted job. Returns OPERATION_IN_PROGRESS, SUCCESS, or DEPENDENCY_UNAVAILABLE.",
+            description = """
+                    Poll a previously accepted job.
+                    PENDING or RUNNING returns OPERATION_IN_PROGRESS.
+                    COMPLETED returns SUCCESS. FAILED returns DEPENDENCY_UNAVAILABLE.
+                    CANCELLED returns CANCELLED and is terminal: do not call getJobResult.
+                    """,
             generateOutputSchema = false,
             annotations = @McpTool.McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
     public CallToolResult getJobStatus(
@@ -120,8 +125,30 @@ public class BankingMcpTools {
     }
 
     @McpTool(
+            name = "cancelCustomerReport",
+            description = """
+                    Cancel a PENDING or RUNNING customer report.
+                    Returns CANCELLED. Already completed jobs stay completed.
+                    Does not delete a finished result.
+                    """,
+            generateOutputSchema = false,
+            annotations = @McpTool.McpAnnotations(readOnlyHint = false, destructiveHint = false, idempotentHint = true))
+    public CallToolResult cancelCustomerReport(
+            @McpToolParam(description = "Job id from startCustomerReport") String jobId,
+            @McpToolParam(description = "Authenticated user id", required = false) String userId,
+            @McpToolParam(description = "Agent session id", required = false) String agentSessionId,
+            McpMeta meta) {
+        return invoke("cancelCustomerReport", agentSessionId, userId, meta,
+                () -> operations.cancelCustomerReport(jobId));
+    }
+
+    @McpTool(
             name = "getJobResult",
-            description = "Retrieve the result of a COMPLETED job. If still running, returns OPERATION_IN_PROGRESS.",
+            description = """
+                    Retrieve the result of a COMPLETED job.
+                    If still running, returns OPERATION_IN_PROGRESS.
+                    If the job was cancelled, returns CANCELLED and no result.
+                    """,
             generateOutputSchema = false,
             annotations = @McpTool.McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
     public CallToolResult getJobResult(

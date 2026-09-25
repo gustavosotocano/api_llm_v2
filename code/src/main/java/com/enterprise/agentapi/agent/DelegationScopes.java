@@ -19,6 +19,7 @@ public final class DelegationScopes {
             "cancelRecurringSubscription", CapabilityScope.SUBSCRIPTIONS_WRITE,
             "proposeCatalogChange", CapabilityScope.CATALOG_PROPOSE,
             "startCustomerReport", CapabilityScope.JOBS_RUN,
+            "cancelCustomerReport", CapabilityScope.JOBS_RUN,
             "getJobStatus", CapabilityScope.JOBS_RUN,
             "getJobResult", CapabilityScope.JOBS_RUN);
 

@@ -47,8 +47,9 @@ public final class IdentityGuard {
             }
             return null;
         }
-        if (requestedUserId != null && !requestedUserId.isBlank()
-                && !Objects.equals(context.userId(), requestedUserId)) {
+        if (context.userId() == null || context.userId().isBlank()
+                || requestedUserId == null || requestedUserId.isBlank()
+                || !Objects.equals(context.userId(), requestedUserId)) {
             return SemanticStatus.INSUFFICIENT_PERMISSIONS;
         }
         return null;

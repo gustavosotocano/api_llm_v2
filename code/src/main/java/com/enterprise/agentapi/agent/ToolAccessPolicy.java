@@ -11,7 +11,7 @@ public class ToolAccessPolicy {
             "searchRecurringPayments", "getJobStatus", "getJobResult");
     private static final Set<String> CANCELLATION_TOOLS = Set.of("cancelRecurringSubscription");
     private static final Set<String> GOVERNANCE_TOOLS = Set.of("proposeCatalogChange");
-    private static final Set<String> REPORT_TOOLS = Set.of("startCustomerReport");
+    private static final Set<String> REPORT_TOOLS = Set.of("startCustomerReport", "cancelCustomerReport");
 
     public boolean allows(AgentWorkflow workflow, String toolName) {
         if (toolName == null || toolName.isBlank()) {

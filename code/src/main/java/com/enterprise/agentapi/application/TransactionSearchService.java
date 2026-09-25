@@ -44,9 +44,9 @@ public class TransactionSearchService implements TransactionQueryApi {
         var userId = normalizeUserId(request.userId());
         var denied = IdentityGuard.authorizeUserResource(userId);
         if (denied != null) {
-            return response(denied, "Current identity cannot access another user's resources.",
+            return response(denied, denialMessage(userId),
                     request.category(), request.period(), null, null,
-                    List.of("Use the authenticated userId"), List.of());
+                    List.of("Pass the authenticated userId"), List.of());
         }
 
         var category = normalizeCategory(request.category());
@@ -138,7 +138,13 @@ public class TransactionSearchService implements TransactionQueryApi {
     }
 
     private String normalizeUserId(String userId) {
-        return isBlank(userId) ? "user-123" : userId;
+        return isBlank(userId) ? null : userId.trim();
+    }
+
+    private static String denialMessage(String userId) {
+        return userId == null
+                ? "userId is required. The backend does not assume an account."
+                : "Current identity cannot access another user's resources.";
     }
 
     private String normalizeCategory(String category) {

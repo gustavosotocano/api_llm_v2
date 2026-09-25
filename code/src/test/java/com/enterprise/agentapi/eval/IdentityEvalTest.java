@@ -99,6 +99,16 @@ class IdentityEvalTest {
     }
 
     @Test
+    void omittedUserIdDoesNotFallBackToADemoAccount() {
+        var binder = new McpAgentContextBinder(new ServiceCredentialRegistry());
+        binder.bind("eval-id-missing-user", "  ", null);
+        var context = AgentContextHolder.get();
+        assertThat(context.userId()).isNull();
+        assertThat(context.identityType()).isEqualTo(IdentityType.USER_DELEGATED);
+        assertThat(context.workflow()).isEqualTo(AgentWorkflow.READ);
+    }
+
+    @Test
     void clientMetaCannotSelfElevateToService() {
         var binder = new McpAgentContextBinder(new ServiceCredentialRegistry());
         binder.bind("eval-id-spoof-001", "user-123", new McpMeta(Map.of("identityType", "SERVICE")));

@@ -25,7 +25,7 @@ public class McpAgentContextBinder {
         if (session == null) {
             session = AgentSessionSupport.resolveSessionId(null);
         }
-        var resolvedUserId = firstNonBlank(userId, stringMeta(meta, "userId"), "user-123");
+        var resolvedUserId = firstNonBlank(userId, stringMeta(meta, "userId"));
         var workflow = parseWorkflow(stringMeta(meta, "workflow"));
         var grant = credentials.validate(stringMeta(meta, "serviceId"), stringMeta(meta, "serviceCredential"));
         if (grant.isPresent()) {

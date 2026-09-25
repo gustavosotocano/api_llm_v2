@@ -8,4 +8,6 @@ public interface CustomerReportApi {
     JobResponse status(String jobId);
 
     JobResponse result(String jobId);
+
+    JobResponse cancel(String jobId);
 }

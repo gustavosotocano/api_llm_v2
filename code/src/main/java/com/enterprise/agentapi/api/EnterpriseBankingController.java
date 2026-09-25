@@ -52,7 +52,7 @@ public class EnterpriseBankingController {
     @PostMapping("/transactions/recurring-search")
     public RecurringPaymentSearchResponse search(@RequestBody RecurringPaymentSearchRequest request,
                                                 @RequestHeader(value = "X-Agent-Session-Id", required = false) String agentSessionId) {
-        var userId = request.userId() == null || request.userId().isBlank() ? "user-123" : request.userId();
+        var userId = blankToNull(request.userId());
         return withContext(agentSessionId, userId, AgentWorkflow.READ,
                 () -> transactionQueryApi.searchRecurringPayments(request));
     }
@@ -66,7 +66,7 @@ public class EnterpriseBankingController {
     @PostMapping("/subscriptions/cancel")
     public SubscriptionCancellationResponse cancel(@RequestBody SubscriptionCancellationRequest request,
                                                    @RequestHeader(value = "X-Agent-Session-Id", required = false) String agentSessionId) {
-        var userId = request.userId() == null || request.userId().isBlank() ? "user-123" : request.userId();
+        var userId = blankToNull(request.userId());
         return withContext(agentSessionId, userId, AgentWorkflow.CANCELLATION,
                 () -> subscriptionCommandApi.cancel(request));
     }
@@ -79,18 +79,29 @@ public class EnterpriseBankingController {
                 () -> customerReportApi.startReport(userId, period));
     }
 
+    @PostMapping("/jobs/{jobId}/cancel")
+    public JobResponse cancelJob(@PathVariable String jobId,
+                                 @RequestParam String userId,
+                                 @RequestHeader(value = "X-Agent-Session-Id", required = false) String agentSessionId) {
+        return withContext(agentSessionId, userId, AgentWorkflow.REPORT, () -> customerReportApi.cancel(jobId));
+    }
+
     @GetMapping("/jobs/{jobId}")
     public JobResponse jobStatus(@PathVariable String jobId,
-                                 @RequestParam(defaultValue = "user-123") String userId,
+                                 @RequestParam String userId,
                                  @RequestHeader(value = "X-Agent-Session-Id", required = false) String agentSessionId) {
         return withContext(agentSessionId, userId, AgentWorkflow.REPORT, () -> customerReportApi.status(jobId));
     }
 
     @GetMapping("/jobs/{jobId}/result")
     public JobResponse jobResult(@PathVariable String jobId,
-                                 @RequestParam(defaultValue = "user-123") String userId,
+                                 @RequestParam String userId,
                                  @RequestHeader(value = "X-Agent-Session-Id", required = false) String agentSessionId) {
         return withContext(agentSessionId, userId, AgentWorkflow.REPORT, () -> customerReportApi.result(jobId));
+    }
+
+    private static String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 
     private <T> T withContext(String agentSessionId, String userId, AgentWorkflow workflow, java.util.function.Supplier<T> action) {

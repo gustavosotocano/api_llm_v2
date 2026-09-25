@@ -128,6 +128,8 @@ class ContextTrustEvalTest {
         assertThat(policy.allows(AgentWorkflow.GOVERNANCE, "proposeCatalogChange")).isTrue();
         assertThat(policy.allows(AgentWorkflow.GOVERNANCE, "cancelRecurringSubscription")).isFalse();
         assertThat(policy.allows(AgentWorkflow.REPORT, "startCustomerReport")).isTrue();
+        assertThat(policy.allows(AgentWorkflow.REPORT, "cancelCustomerReport")).isTrue();
+        assertThat(policy.allows(AgentWorkflow.READ, "cancelCustomerReport")).isFalse();
         assertThat(policy.allows(AgentWorkflow.REPORT, "cancelRecurringSubscription")).isFalse();
         assertThat(policy.allows(AgentWorkflow.FULL, "cancelRecurringSubscription")).isTrue();
         assertThat(policy.allows(null, "cancelRecurringSubscription")).isFalse();
