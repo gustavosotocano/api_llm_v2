@@ -7,7 +7,12 @@ import com.enterprise.agentapi.application.CustomerProfileService;
 import com.enterprise.agentapi.domain.IdentityType;
 import com.enterprise.agentapi.domain.SemanticStatus;
 import com.enterprise.agentapi.enterprise.AgentBoundary;
-import com.enterprise.agentapi.infrastructure.CustomerProfileRepository;
+import com.enterprise.agentapi.application.CatalogGovernanceService;
+import com.enterprise.agentapi.application.CustomerReportJobService;
+import com.enterprise.agentapi.application.SubscriptionCancellationService;
+import com.enterprise.agentapi.application.TransactionSearchService;
+import com.enterprise.agentapi.infrastructure.InMemoryCustomerProfileRepository;
+import com.enterprise.agentapi.mcp.BankingReferenceData;
 import com.enterprise.agentapi.mcp.BankingMcpTools;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +21,7 @@ import org.springframework.ai.mcp.annotation.McpTool;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -56,9 +62,29 @@ class BoundaryEvalTest {
     }
 
     @Test
+    void applicationDependsOnOutboundPorts() {
+        var services = List.of(
+                TransactionSearchService.class,
+                SubscriptionCancellationService.class,
+                CatalogGovernanceService.class,
+                CustomerReportJobService.class,
+                CustomerProfileService.class,
+                BankingReferenceData.class);
+        for (var type : services) {
+            for (var constructor : type.getDeclaredConstructors()) {
+                for (var parameter : constructor.getParameterTypes()) {
+                    assertThat(parameter.getPackageName())
+                            .as(type.getSimpleName() + " constructor")
+                            .doesNotContain("infrastructure");
+                }
+            }
+        }
+    }
+
+    @Test
     void enterpriseApisRemainCallableWithoutMcp() {
         AgentContextHolder.set(new AgentContext("boundary-session", "user-123", "ENTERPRISE_API", IdentityType.USER_DELEGATED));
-        var profile = new CustomerProfileService(new CustomerProfileRepository()).getProfile("user-123");
+        var profile = new CustomerProfileService(new InMemoryCustomerProfileRepository()).getProfile("user-123");
         assertThat(profile.status()).isEqualTo(SemanticStatus.SUCCESS);
         assertThat(profile.displayName()).isEqualTo("Alex Rivera");
 

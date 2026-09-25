@@ -8,8 +8,8 @@ import com.enterprise.agentapi.domain.IdentityType;
 import com.enterprise.agentapi.domain.PeriodOption;
 import com.enterprise.agentapi.domain.RecurringPaymentSearchRequest;
 import com.enterprise.agentapi.domain.SemanticStatus;
-import com.enterprise.agentapi.infrastructure.CategoryDictionaryRepository;
-import com.enterprise.agentapi.infrastructure.TransactionRepository;
+import com.enterprise.agentapi.infrastructure.InMemoryCategoryDictionaryRepository;
+import com.enterprise.agentapi.infrastructure.InMemoryTransactionRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,7 +27,7 @@ class TransactionSearchServiceTest {
     @BeforeEach
     void setUp() {
         var clock = Clock.fixed(LocalDate.of(2026, 5, 20).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
-        service = new TransactionSearchService(new TransactionRepository(), new CategoryDictionaryRepository(), clock);
+        service = new TransactionSearchService(new InMemoryTransactionRepository(), new InMemoryCategoryDictionaryRepository(), clock);
         AgentContextHolder.set(new AgentContext("session-1", "user-123", "TEST", IdentityType.USER_DELEGATED));
     }
 

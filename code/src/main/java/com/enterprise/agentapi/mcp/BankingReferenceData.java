@@ -1,7 +1,7 @@
 package com.enterprise.agentapi.mcp;
 
 import com.enterprise.agentapi.domain.PeriodOption;
-import com.enterprise.agentapi.infrastructure.CategoryDictionaryRepository;
+import com.enterprise.agentapi.application.port.CategoryDictionaryRepository;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;

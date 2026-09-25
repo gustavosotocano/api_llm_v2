@@ -3,7 +3,7 @@ package com.enterprise.agentapi.application;
 import com.enterprise.agentapi.domain.CustomerProfileResponse;
 import com.enterprise.agentapi.domain.SemanticStatus;
 import com.enterprise.agentapi.enterprise.CustomerProfileApi;
-import com.enterprise.agentapi.infrastructure.CustomerProfileRepository;
+import com.enterprise.agentapi.application.port.CustomerProfileRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

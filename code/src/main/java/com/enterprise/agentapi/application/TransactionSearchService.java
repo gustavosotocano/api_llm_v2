@@ -10,8 +10,8 @@ import com.enterprise.agentapi.domain.RecurringPaymentSearchResponse;
 import com.enterprise.agentapi.domain.SemanticStatus;
 import com.enterprise.agentapi.domain.Transaction;
 import com.enterprise.agentapi.enterprise.TransactionQueryApi;
-import com.enterprise.agentapi.infrastructure.CategoryDictionaryRepository;
-import com.enterprise.agentapi.infrastructure.TransactionRepository;
+import com.enterprise.agentapi.application.port.CategoryDictionaryRepository;
+import com.enterprise.agentapi.application.port.TransactionRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;

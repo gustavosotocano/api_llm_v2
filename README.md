@@ -108,13 +108,14 @@ curl -X POST "http://localhost:8080/debug/governance/catalog/proposals/<proposal
 ```text
 User → /ai/chat → Ollama → MCP Client → /api/mcp → BankingMcpTools
                                               ↘
-User/Cursor → /api/mcp (direct) ───────────────┘
-                        ↓ agent-facing (schemas, rate, budget, audit)
-              BankingToolOperations
-                        ↓ enterprise / domain APIs
-              /api/banking  (Customer • Transactions • Subscriptions)
-                        ↓
-              Business systems (in-memory stores)
+User/Cursor → /api/mcp (direct) ───────────────┤
+                                               ↓ agent-facing (schemas, rate, budget, audit)
+                                    BankingToolOperations
+User → /api/banking ───────────────────────────┤
+                                               ↓ inbound ports (enterprise APIs)
+                                    application services
+                                               ↓ outbound ports
+                                    in-memory adapters (infrastructure)
 ```
 
 Memory, workflow state, retries, and orchestration stay outside MCP. `startCustomerReport` composes three domain APIs behind a single tool.

@@ -18,8 +18,8 @@ import com.enterprise.agentapi.enterprise.CustomerProfileApi;
 import com.enterprise.agentapi.enterprise.CustomerReportApi;
 import com.enterprise.agentapi.enterprise.SubscriptionCommandApi;
 import com.enterprise.agentapi.enterprise.TransactionQueryApi;
-import com.enterprise.agentapi.infrastructure.AsyncJobStore;
-import com.enterprise.agentapi.infrastructure.IdempotencyStore;
+import com.enterprise.agentapi.application.port.AsyncJobStore;
+import com.enterprise.agentapi.application.port.IdempotencyStore;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;

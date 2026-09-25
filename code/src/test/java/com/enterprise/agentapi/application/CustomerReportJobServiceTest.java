@@ -7,13 +7,13 @@ import com.enterprise.agentapi.domain.JobStatus;
 import com.enterprise.agentapi.domain.SemanticStatus;
 import com.enterprise.agentapi.enterprise.AgentBoundary;
 import com.enterprise.agentapi.domain.RetryDisposition;
-import com.enterprise.agentapi.infrastructure.AsyncJobStore;
-import com.enterprise.agentapi.infrastructure.CategoryDictionaryRepository;
-import com.enterprise.agentapi.infrastructure.ConfirmationTokenStore;
-import com.enterprise.agentapi.infrastructure.CustomerProfileRepository;
-import com.enterprise.agentapi.infrastructure.IdempotencyStore;
-import com.enterprise.agentapi.infrastructure.SubscriptionRegistry;
-import com.enterprise.agentapi.infrastructure.TransactionRepository;
+import com.enterprise.agentapi.infrastructure.InMemoryAsyncJobStore;
+import com.enterprise.agentapi.infrastructure.InMemoryCategoryDictionaryRepository;
+import com.enterprise.agentapi.infrastructure.InMemoryConfirmationTokenStore;
+import com.enterprise.agentapi.infrastructure.InMemoryCustomerProfileRepository;
+import com.enterprise.agentapi.infrastructure.InMemoryIdempotencyStore;
+import com.enterprise.agentapi.infrastructure.InMemorySubscriptionRegistry;
+import com.enterprise.agentapi.infrastructure.InMemoryTransactionRepository;
 import com.enterprise.agentapi.agent.AgentProperties;
 import com.enterprise.agentapi.observability.AgentAuditService;
 import tools.jackson.databind.json.JsonMapper;
@@ -36,17 +36,17 @@ class CustomerReportJobServiceTest {
     @BeforeEach
     void setUp() {
         var clock = Clock.fixed(LocalDate.of(2026, 5, 20).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
-        var transactions = new TransactionRepository();
-        var search = new TransactionSearchService(transactions, new CategoryDictionaryRepository(), clock);
+        var transactions = new InMemoryTransactionRepository();
+        var search = new TransactionSearchService(transactions, new InMemoryCategoryDictionaryRepository(), clock);
         var cancellation = new SubscriptionCancellationService(
-                new IdempotencyStore(),
-                new ConfirmationTokenStore(new AgentProperties()),
-                new SubscriptionRegistry(),
+                new InMemoryIdempotencyStore(),
+                new InMemoryConfirmationTokenStore(new AgentProperties()),
+                new InMemorySubscriptionRegistry(),
                 transactions);
         service = new CustomerReportJobService(
-                new AsyncJobStore(),
-                new IdempotencyStore(),
-                new CustomerProfileService(new CustomerProfileRepository()),
+                new InMemoryAsyncJobStore(),
+                new InMemoryIdempotencyStore(),
+                new CustomerProfileService(new InMemoryCustomerProfileRepository()),
                 search,
                 cancellation,
                 new AgentAuditService(JsonMapper.builder().build()));

@@ -3,9 +3,10 @@ package com.enterprise.agentapi.application;
 import com.enterprise.agentapi.agent.AgentProperties;
 import com.enterprise.agentapi.domain.CatalogProposalType;
 import com.enterprise.agentapi.domain.SemanticStatus;
-import com.enterprise.agentapi.infrastructure.CatalogProposalStore;
-import com.enterprise.agentapi.infrastructure.IdempotencyStore;
-import com.enterprise.agentapi.infrastructure.CategoryDictionaryRepository;
+import com.enterprise.agentapi.application.port.CategoryDictionaryRepository;
+import com.enterprise.agentapi.infrastructure.InMemoryCatalogProposalStore;
+import com.enterprise.agentapi.infrastructure.InMemoryCategoryDictionaryRepository;
+import com.enterprise.agentapi.infrastructure.InMemoryIdempotencyStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -19,8 +20,8 @@ class CatalogGovernanceServiceTest {
 
     @BeforeEach
     void setUp() {
-        dictionary = new CategoryDictionaryRepository();
-        service = new CatalogGovernanceService(dictionary, new CatalogProposalStore(), new IdempotencyStore(), new AgentProperties());
+        dictionary = new InMemoryCategoryDictionaryRepository();
+        service = new CatalogGovernanceService(dictionary, new InMemoryCatalogProposalStore(), new InMemoryIdempotencyStore(), new AgentProperties());
     }
 
     @Test

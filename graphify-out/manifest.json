@@ -1,0 +1,794 @@
+{
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/pom.xml": {
+    "mtime": 1789161130.9741418,
+    "seen": 1790377167.275003,
+    "ast_hash": "4f4537d1e843974c4008b22bfb9755cf",
+    "semantic_hash": "4f4537d1e843974c4008b22bfb9755cf"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/EnterpriseAgentApiApplication.java": {
+    "mtime": 1789161140.7167814,
+    "seen": 1790377167.2750049,
+    "ast_hash": "371347697b3751468ef72dddcff7f3ff",
+    "semantic_hash": "371347697b3751468ef72dddcff7f3ff"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/agent/AgentContext.java": {
+    "mtime": 1790372297.8064632,
+    "seen": 1790377167.275007,
+    "ast_hash": "30b026933b9b658218c14a051b8fb7db",
+    "semantic_hash": "30b026933b9b658218c14a051b8fb7db"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/agent/AgentContextHolder.java": {
+    "mtime": 1789161158.6814792,
+    "seen": 1790377167.275007,
+    "ast_hash": "d050750c5f4fa1d660fd9bfeb60ac12d",
+    "semantic_hash": "d050750c5f4fa1d660fd9bfeb60ac12d"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/agent/AgentProperties.java": {
+    "mtime": 1790376111.2746906,
+    "seen": 1790377167.275008,
+    "ast_hash": "23bba6d4c1df062db7851de5bc59d4d2",
+    "semantic_hash": "23bba6d4c1df062db7851de5bc59d4d2"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/agent/AgentRateLimitExceededException.java": {
+    "mtime": 1790374114.8908577,
+    "seen": 1790377167.275008,
+    "ast_hash": "d3b050629f39b2e59595292e1ba5a79e",
+    "semantic_hash": "d3b050629f39b2e59595292e1ba5a79e"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/agent/AgentRateLimitSupport.java": {
+    "mtime": 1789161161.5230396,
+    "seen": 1790377167.275009,
+    "ast_hash": "6b24853633bd09a6870da1101376cdff",
+    "semantic_hash": "6b24853633bd09a6870da1101376cdff"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/agent/AgentRateLimiter.java": {
+    "mtime": 1790374117.7324994,
+    "seen": 1790377167.275009,
+    "ast_hash": "dc7c7ea144635b4f843ac58b47143c05",
+    "semantic_hash": "dc7c7ea144635b4f843ac58b47143c05"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/agent/BudgetExceededException.java": {
+    "mtime": 1789161166.0113902,
+    "seen": 1790377167.27501,
+    "ast_hash": "f5b833d55886a6d1c931e6c62cdae819",
+    "semantic_hash": "f5b833d55886a6d1c931e6c62cdae819"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/agent/DelegationScopes.java": {
+    "mtime": 1790373725.4830492,
+    "seen": 1790377167.27501,
+    "ast_hash": "b1247a743c6c649debab4998113abc05",
+    "semantic_hash": "b1247a743c6c649debab4998113abc05"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/agent/ExecutionBudgetService.java": {
+    "mtime": 1790376108.539081,
+    "seen": 1790377167.275011,
+    "ast_hash": "edb10959302eb108d61890629ed0a2ec",
+    "semantic_hash": "edb10959302eb108d61890629ed0a2ec"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/agent/OperationTrace.java": {
+    "mtime": 1790376366.316346,
+    "seen": 1790377167.275011,
+    "ast_hash": "23d8fe8f6a0314fc5cdc6cabc6f7353c",
+    "semantic_hash": "23d8fe8f6a0314fc5cdc6cabc6f7353c"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/agent/RateLimitScope.java": {
+    "mtime": 1790374104.6356626,
+    "seen": 1790377167.275012,
+    "ast_hash": "64482b976b4d2bab3da3d61b92f7b5d8",
+    "semantic_hash": "64482b976b4d2bab3da3d61b92f7b5d8"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/agent/RetryBudgetExceededException.java": {
+    "mtime": 1790376096.240184,
+    "seen": 1790377167.275012,
+    "ast_hash": "c05718c8d361739f02c8913f0778a055",
+    "semantic_hash": "c05718c8d361739f02c8913f0778a055"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/agent/RetryBudgetService.java": {
+    "mtime": 1790376100.4108286,
+    "seen": 1790377167.2750132,
+    "ast_hash": "7e404e7d75deafef44a001d5b9ecec16",
+    "semantic_hash": "7e404e7d75deafef44a001d5b9ecec16"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/agent/ServiceCredentialRegistry.java": {
+    "mtime": 1790372292.7947483,
+    "seen": 1790377167.2750132,
+    "ast_hash": "b3d55252b34fd8f8701f33cacfe4bc52",
+    "semantic_hash": "b3d55252b34fd8f8701f33cacfe4bc52"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/agent/ServiceGrant.java": {
+    "mtime": 1790372289.591172,
+    "seen": 1790377167.275014,
+    "ast_hash": "aa6884e446add95a5421706d24d657c5",
+    "semantic_hash": "aa6884e446add95a5421706d24d657c5"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/agent/ToolAccessDeniedException.java": {
+    "mtime": 1790372299.1736965,
+    "seen": 1790377167.275014,
+    "ast_hash": "97b2a17ed85533c5f5ec0fde7c6f5b27",
+    "semantic_hash": "97b2a17ed85533c5f5ec0fde7c6f5b27"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/agent/ToolAccessPolicy.java": {
+    "mtime": 1790373724.65346,
+    "seen": 1790377167.2750149,
+    "ast_hash": "614681d08b256bd99685e449de170e36",
+    "semantic_hash": "614681d08b256bd99685e449de170e36"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/agent/ToolCallIds.java": {
+    "mtime": 1790374104.0527463,
+    "seen": 1790377167.2750149,
+    "ast_hash": "904dabcb515dc66185b633f959afb084",
+    "semantic_hash": "904dabcb515dc66185b633f959afb084"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/ai/AgentToolSupport.java": {
+    "mtime": 1790376366.8730044,
+    "seen": 1790377167.2750158,
+    "ast_hash": "e0765572d0c2947a878ecbe2be85b923",
+    "semantic_hash": "e0765572d0c2947a878ecbe2be85b923"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/ai/BankingToolOperations.java": {
+    "mtime": 1790376181.0235023,
+    "seen": 1790377167.2750158,
+    "ast_hash": "ea7a3ada8b5068c1a6e0929a7cce7bf4",
+    "semantic_hash": "ea7a3ada8b5068c1a6e0929a7cce7bf4"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/ai/ToolInvocation.java": {
+    "mtime": 1790371627.332595,
+    "seen": 1790377167.275017,
+    "ast_hash": "57cbb04a4610c61941bb1b3653cb75e8",
+    "semantic_hash": "57cbb04a4610c61941bb1b3653cb75e8"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/ai/ToolInvocationListener.java": {
+    "mtime": 1790371627.3325953,
+    "seen": 1790377167.275017,
+    "ast_hash": "098a9b7fd6e3e37c5617fb184f555f1c",
+    "semantic_hash": "098a9b7fd6e3e37c5617fb184f555f1c"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/api/AgentSessionSupport.java": {
+    "mtime": 1790376368.9776165,
+    "seen": 1790377167.275018,
+    "ast_hash": "3032cd24387ad83dd70e41b9942d726c",
+    "semantic_hash": "3032cd24387ad83dd70e41b9942d726c"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/api/AiChatController.java": {
+    "mtime": 1790376196.4861062,
+    "seen": 1790377167.275018,
+    "ast_hash": "f6f2d5b4fbf2b3530c4e9679bb4c2b93",
+    "semantic_hash": "f6f2d5b4fbf2b3530c4e9679bb4c2b93"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/api/AuditController.java": {
+    "mtime": 1789161379.3559418,
+    "seen": 1790377167.275019,
+    "ast_hash": "212821bf4e2fcd5d0ac0e0385608798a",
+    "semantic_hash": "212821bf4e2fcd5d0ac0e0385608798a"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/api/ChatRequest.java": {
+    "mtime": 1790373726.7622955,
+    "seen": 1790377167.275019,
+    "ast_hash": "33b8f8e8ee71616a4716cd33ba492b4b",
+    "semantic_hash": "33b8f8e8ee71616a4716cd33ba492b4b"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/api/ChatResponse.java": {
+    "mtime": 1789161351.0052905,
+    "seen": 1790377167.2750201,
+    "ast_hash": "e9e8f07d5f416a630113190aa4e2c68d",
+    "semantic_hash": "e9e8f07d5f416a630113190aa4e2c68d"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/api/ChatWorkflowResolver.java": {
+    "mtime": 1790373669.910287,
+    "seen": 1790377167.2750201,
+    "ast_hash": "dfd22baa16ceec7c31719945154050bc",
+    "semantic_hash": "dfd22baa16ceec7c31719945154050bc"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/api/DebugController.java": {
+    "mtime": 1790374234.9463086,
+    "seen": 1790377167.275021,
+    "ast_hash": "b545f01d153d059a259c4f5fa83ea07e",
+    "semantic_hash": "b545f01d153d059a259c4f5fa83ea07e"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/api/EnterpriseBankingController.java": {
+    "mtime": 1790374234.2181056,
+    "seen": 1790377167.275021,
+    "ast_hash": "824b1e59dad22a3a051f829e118d152b",
+    "semantic_hash": "824b1e59dad22a3a051f829e118d152b"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/api/EnterpriseRequestFilter.java": {
+    "mtime": 1790376102.514799,
+    "seen": 1790377167.275022,
+    "ast_hash": "9da1d61846b73dcab2913c24d6df7e23",
+    "semantic_hash": "9da1d61846b73dcab2913c24d6df7e23"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/api/GovernanceController.java": {
+    "mtime": 1790372042.0411289,
+    "seen": 1790377167.275022,
+    "ast_hash": "d5996a09b3d86f061a506f8184255d38",
+    "semantic_hash": "d5996a09b3d86f061a506f8184255d38"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/api/IdentityDebugController.java": {
+    "mtime": 1790372320.6609013,
+    "seen": 1790377167.275022,
+    "ast_hash": "e5623e55c0a19f79ad6ea2577d72b536",
+    "semantic_hash": "e5623e55c0a19f79ad6ea2577d72b536"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/application/CatalogGovernanceService.java": {
+    "mtime": 1790374290.0209267,
+    "seen": 1790377167.2750232,
+    "ast_hash": "6cef0bfdb04f9fd9fd6640faced3e787",
+    "semantic_hash": "6cef0bfdb04f9fd9fd6640faced3e787"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/application/CustomerProfileService.java": {
+    "mtime": 1790373682.2483177,
+    "seen": 1790377167.2750232,
+    "ast_hash": "5fe0954832ec49c080330fb5be339c3f",
+    "semantic_hash": "5fe0954832ec49c080330fb5be339c3f"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/application/CustomerReportJobService.java": {
+    "mtime": 1790376167.3621554,
+    "seen": 1790377167.275024,
+    "ast_hash": "07c9ec5e56ade6b04c02b17c488e3769",
+    "semantic_hash": "07c9ec5e56ade6b04c02b17c488e3769"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/application/IdentityGuard.java": {
+    "mtime": 1790373676.0700636,
+    "seen": 1790377167.275024,
+    "ast_hash": "288874a5cb48a298c0b3bc7f1bff77e5",
+    "semantic_hash": "288874a5cb48a298c0b3bc7f1bff77e5"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/application/SubscriptionCancellationService.java": {
+    "mtime": 1790374289.5506923,
+    "seen": 1790377167.275025,
+    "ast_hash": "5ca0a74132ffdc2905c0f3de6976f2b5",
+    "semantic_hash": "5ca0a74132ffdc2905c0f3de6976f2b5"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/application/TransactionSearchService.java": {
+    "mtime": 1790374289.5494955,
+    "seen": 1790377167.275025,
+    "ast_hash": "4307a7cab37fae934fb90b08a68f66bb",
+    "semantic_hash": "4307a7cab37fae934fb90b08a68f66bb"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/config/AgentChatToolContextToMcpMetaConverter.java": {
+    "mtime": 1790376186.9243147,
+    "seen": 1790377167.2750258,
+    "ast_hash": "e5e735f27148176bf4bee7baee575906",
+    "semantic_hash": "e5e735f27148176bf4bee7baee575906"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/config/AgentConfiguration.java": {
+    "mtime": 1789161157.1395586,
+    "seen": 1790377167.2750258,
+    "ast_hash": "28cf049157d697c89805f445a3541bf4",
+    "semantic_hash": "28cf049157d697c89805f445a3541bf4"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/config/McpClientBridgeConfiguration.java": {
+    "mtime": 1789161379.951631,
+    "seen": 1790377167.275027,
+    "ast_hash": "5ae1957491b06d411b9d04380c492094",
+    "semantic_hash": "5ae1957491b06d411b9d04380c492094"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/config/McpClientInitializer.java": {
+    "mtime": 1789161386.553217,
+    "seen": 1790377167.275027,
+    "ast_hash": "b1f1409709e1520a8683810b27c7808d",
+    "semantic_hash": "b1f1409709e1520a8683810b27c7808d"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/domain/AgentWorkflow.java": {
+    "mtime": 1790371965.9177103,
+    "seen": 1790377167.275028,
+    "ast_hash": "3baf0032ac9ca2f96983ed1e01be259f",
+    "semantic_hash": "3baf0032ac9ca2f96983ed1e01be259f"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/domain/AsyncJob.java": {
+    "mtime": 1790374108.4893246,
+    "seen": 1790377167.275028,
+    "ast_hash": "6fc79fc5e64d74c17921d656efb9846d",
+    "semantic_hash": "6fc79fc5e64d74c17921d656efb9846d"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/domain/CapabilityScope.java": {
+    "mtime": 1790372289.4322882,
+    "seen": 1790377167.275029,
+    "ast_hash": "1682b58439798ebe59b103fdb174ec67",
+    "semantic_hash": "1682b58439798ebe59b103fdb174ec67"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/domain/CatalogChangeProposal.java": {
+    "mtime": 1789161152.3101566,
+    "seen": 1790377167.275029,
+    "ast_hash": "a802c3f64e66939c6fac8f0003c24df2",
+    "semantic_hash": "a802c3f64e66939c6fac8f0003c24df2"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/domain/CatalogChangeResponse.java": {
+    "mtime": 1790374106.3335965,
+    "seen": 1790377167.27503,
+    "ast_hash": "5caea982e05f0e96c30b81809d173752",
+    "semantic_hash": "5caea982e05f0e96c30b81809d173752"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/domain/CatalogProposalStatus.java": {
+    "mtime": 1789161149.9439764,
+    "seen": 1790377167.27503,
+    "ast_hash": "3971e2964919678694fe5bcf9dc119a2",
+    "semantic_hash": "3971e2964919678694fe5bcf9dc119a2"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/domain/CatalogProposalType.java": {
+    "mtime": 1789161149.5832758,
+    "seen": 1790377167.275031,
+    "ast_hash": "3b09cbe0c8b53ffb5990d0a1b05c8bf4",
+    "semantic_hash": "3b09cbe0c8b53ffb5990d0a1b05c8bf4"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/domain/CustomerProfileResponse.java": {
+    "mtime": 1790372516.079909,
+    "seen": 1790377167.275031,
+    "ast_hash": "8d6a0a3ce5cfc3c2da6e287c89cf4e88",
+    "semantic_hash": "8d6a0a3ce5cfc3c2da6e287c89cf4e88"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/domain/DateRange.java": {
+    "mtime": 1789161144.2360787,
+    "seen": 1790377167.275032,
+    "ast_hash": "a1de7b45be1978d35176e7dbdf53a9bf",
+    "semantic_hash": "a1de7b45be1978d35176e7dbdf53a9bf"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/domain/IdentityType.java": {
+    "mtime": 1789161155.8743513,
+    "seen": 1790377167.275032,
+    "ast_hash": "832b42bca2e38a3b8298505cb2cebac8",
+    "semantic_hash": "832b42bca2e38a3b8298505cb2cebac8"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/domain/JobResponse.java": {
+    "mtime": 1790374107.026085,
+    "seen": 1790377167.275032,
+    "ast_hash": "7bbdc919bfe7b591545302f9be101692",
+    "semantic_hash": "7bbdc919bfe7b591545302f9be101692"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/domain/JobStatus.java": {
+    "mtime": 1789161153.2861414,
+    "seen": 1790377167.275033,
+    "ast_hash": "dc0bea473ae3ff8ea51831e957792a09",
+    "semantic_hash": "dc0bea473ae3ff8ea51831e957792a09"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/domain/MerchantSummary.java": {
+    "mtime": 1789161146.3060596,
+    "seen": 1790377167.275033,
+    "ast_hash": "d63b3e358e765d8b2b657dabfe7038c1",
+    "semantic_hash": "d63b3e358e765d8b2b657dabfe7038c1"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/domain/OperationRetry.java": {
+    "mtime": 1790376107.9011881,
+    "seen": 1790377167.2750342,
+    "ast_hash": "1caca050a1958b77538d13f014fb26e0",
+    "semantic_hash": "1caca050a1958b77538d13f014fb26e0"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/domain/PaymentOccurrence.java": {
+    "mtime": 1789161145.3075266,
+    "seen": 1790377167.2750342,
+    "ast_hash": "5a48cac45d797f82150c0654b4a47de8",
+    "semantic_hash": "5a48cac45d797f82150c0654b4a47de8"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/domain/PeriodExpressions.java": {
+    "mtime": 1790373668.226319,
+    "seen": 1790377167.275035,
+    "ast_hash": "93871dc42da3e933e4facc8cc20e58df",
+    "semantic_hash": "93871dc42da3e933e4facc8cc20e58df"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/domain/PeriodOption.java": {
+    "mtime": 1789161143.8164933,
+    "seen": 1790377167.275035,
+    "ast_hash": "d291b59dd65e5f1f6412e8ffbdcf39ae",
+    "semantic_hash": "d291b59dd65e5f1f6412e8ffbdcf39ae"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/domain/RecurringPaymentSearchRequest.java": {
+    "mtime": 1789161146.5213945,
+    "seen": 1790377167.2750359,
+    "ast_hash": "473d678dd4eff879279db2c24157a8a6",
+    "semantic_hash": "473d678dd4eff879279db2c24157a8a6"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/domain/RecurringPaymentSearchResponse.java": {
+    "mtime": 1790374105.1899283,
+    "seen": 1790377167.2750359,
+    "ast_hash": "6ac815b34771d6a13b50959ad8a9a86b",
+    "semantic_hash": "6ac815b34771d6a13b50959ad8a9a86b"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/domain/RetryDisposition.java": {
+    "mtime": 1790374100.9112198,
+    "seen": 1790377167.2750368,
+    "ast_hash": "5e265edd8ab25e68ecde1c34ada7d670",
+    "semantic_hash": "5e265edd8ab25e68ecde1c34ada7d670"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/domain/SemanticStatus.java": {
+    "mtime": 1790376107.1152644,
+    "seen": 1790377167.2750368,
+    "ast_hash": "ce53d604bbff6f93b4a2e58a880b7b73",
+    "semantic_hash": "ce53d604bbff6f93b4a2e58a880b7b73"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/domain/SubscriptionCancellationRequest.java": {
+    "mtime": 1789161148.3877156,
+    "seen": 1790377167.275038,
+    "ast_hash": "e66f83633e1f01f30f2377062f8df15c",
+    "semantic_hash": "e66f83633e1f01f30f2377062f8df15c"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/domain/SubscriptionCancellationResponse.java": {
+    "mtime": 1790374105.7431817,
+    "seen": 1790377167.275038,
+    "ast_hash": "5b8b0d4ac2ffa035874bb8f46a4a5575",
+    "semantic_hash": "5b8b0d4ac2ffa035874bb8f46a4a5575"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/domain/SubscriptionSnapshot.java": {
+    "mtime": 1790372516.446088,
+    "seen": 1790377167.275038,
+    "ast_hash": "d39a8b910020a8df91588d19cb7212af",
+    "semantic_hash": "d39a8b910020a8df91588d19cb7212af"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/domain/Transaction.java": {
+    "mtime": 1789161144.8744414,
+    "seen": 1790377167.275039,
+    "ast_hash": "302023010a5e2d7eff1b2c825836db5d",
+    "semantic_hash": "302023010a5e2d7eff1b2c825836db5d"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/domain/TrustLevel.java": {
+    "mtime": 1789161156.090057,
+    "seen": 1790377167.275039,
+    "ast_hash": "1cf5cc31afad035f467f78c10a5eb353",
+    "semantic_hash": "1cf5cc31afad035f467f78c10a5eb353"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/enterprise/AgentBoundary.java": {
+    "mtime": 1790372515.3854017,
+    "seen": 1790377167.27504,
+    "ast_hash": "d83bde9fe9164fcbc78686741aba1427",
+    "semantic_hash": "d83bde9fe9164fcbc78686741aba1427"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/enterprise/CatalogChangeApi.java": {
+    "mtime": 1790374184.5178878,
+    "seen": 1790377167.27504,
+    "ast_hash": "049114cd65055575c1e9e84c9a2312d7",
+    "semantic_hash": "049114cd65055575c1e9e84c9a2312d7"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/enterprise/CustomerProfileApi.java": {
+    "mtime": 1790372515.3853633,
+    "seen": 1790377167.275041,
+    "ast_hash": "d78e59100eddc24747cd5d4f0aa1f011",
+    "semantic_hash": "d78e59100eddc24747cd5d4f0aa1f011"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/enterprise/CustomerReportApi.java": {
+    "mtime": 1790374184.5162163,
+    "seen": 1790377167.275041,
+    "ast_hash": "394471dbeaa658cbc3118e1100e96272",
+    "semantic_hash": "394471dbeaa658cbc3118e1100e96272"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/enterprise/SubscriptionCommandApi.java": {
+    "mtime": 1790372515.385456,
+    "seen": 1790377167.275042,
+    "ast_hash": "3b6aa2c520551539c9a3cc9d66aade39",
+    "semantic_hash": "3b6aa2c520551539c9a3cc9d66aade39"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/enterprise/TransactionQueryApi.java": {
+    "mtime": 1790372515.3855329,
+    "seen": 1790377167.275042,
+    "ast_hash": "5437124e60c175aa082835b2ad6230dc",
+    "semantic_hash": "5437124e60c175aa082835b2ad6230dc"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/infrastructure/AsyncJobStore.java": {
+    "mtime": 1790374185.0555968,
+    "seen": 1790377167.275042,
+    "ast_hash": "60699c490489ee1876ebec9f2c536187",
+    "semantic_hash": "60699c490489ee1876ebec9f2c536187"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/infrastructure/CatalogProposalStore.java": {
+    "mtime": 1790376154.1550007,
+    "seen": 1790377167.275043,
+    "ast_hash": "9f8b25d703f5d4d75d44911c0b19ea3b",
+    "semantic_hash": "9f8b25d703f5d4d75d44911c0b19ea3b"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/infrastructure/CategoryDictionaryRepository.java": {
+    "mtime": 1790376145.93507,
+    "seen": 1790377167.275043,
+    "ast_hash": "7487c08c5e5b31d2d48001c5dcbff919",
+    "semantic_hash": "7487c08c5e5b31d2d48001c5dcbff919"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/infrastructure/ConfirmationTokenStore.java": {
+    "mtime": 1789161221.0889006,
+    "seen": 1790377167.2750442,
+    "ast_hash": "4814cefe1c4841e0b451ea442ded4ce9",
+    "semantic_hash": "4814cefe1c4841e0b451ea442ded4ce9"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/infrastructure/CustomerProfileRepository.java": {
+    "mtime": 1790376142.8588345,
+    "seen": 1790377167.2750442,
+    "ast_hash": "0ea7df41134555486d9a2ad437deeb59",
+    "semantic_hash": "0ea7df41134555486d9a2ad437deeb59"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/infrastructure/IdempotencyStore.java": {
+    "mtime": 1789161210.834889,
+    "seen": 1790377167.2750452,
+    "ast_hash": "3a6c0db3539c78ba3496fcb3790ca9ca",
+    "semantic_hash": "3a6c0db3539c78ba3496fcb3790ca9ca"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/infrastructure/SubscriptionRegistry.java": {
+    "mtime": 1790376150.4084816,
+    "seen": 1790377167.2750452,
+    "ast_hash": "e735f9627c3d41e18d1f41b98208e5b8",
+    "semantic_hash": "e735f9627c3d41e18d1f41b98208e5b8"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/infrastructure/TransactionRepository.java": {
+    "mtime": 1790376142.4964821,
+    "seen": 1790377167.2750459,
+    "ast_hash": "0fab28105503faa258cd25fe55b9d42a",
+    "semantic_hash": "0fab28105503faa258cd25fe55b9d42a"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/mcp/BankingMcpPrompts.java": {
+    "mtime": 1790374279.4830956,
+    "seen": 1790377167.2750459,
+    "ast_hash": "4562995c15161cbfe653b228f6acf74d",
+    "semantic_hash": "4562995c15161cbfe653b228f6acf74d"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/mcp/BankingMcpResources.java": {
+    "mtime": 1789161325.4442422,
+    "seen": 1790377167.2750468,
+    "ast_hash": "8a3aaa2ac23a122676dec59c1ac92e53",
+    "semantic_hash": "8a3aaa2ac23a122676dec59c1ac92e53"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/mcp/BankingMcpTools.java": {
+    "mtime": 1790374241.8146646,
+    "seen": 1790377167.275048,
+    "ast_hash": "b6014fc6d1c3f7b78b2358f1f7a7ff8d",
+    "semantic_hash": "b6014fc6d1c3f7b78b2358f1f7a7ff8d"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/mcp/BankingReferenceData.java": {
+    "mtime": 1790376198.179681,
+    "seen": 1790377167.275048,
+    "ast_hash": "159a6c4e338a1152533552fde5f1be2f",
+    "semantic_hash": "159a6c4e338a1152533552fde5f1be2f"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/mcp/ContextAuthority.java": {
+    "mtime": 1790371968.5425706,
+    "seen": 1790377167.275049,
+    "ast_hash": "37259bd1bb79aefb8c6a931c01e27495",
+    "semantic_hash": "37259bd1bb79aefb8c6a931c01e27495"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/mcp/ContextProvenance.java": {
+    "mtime": 1790374243.0055552,
+    "seen": 1790377167.275049,
+    "ast_hash": "eeb573c4283694bf10a625877b76613a",
+    "semantic_hash": "eeb573c4283694bf10a625877b76613a"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/mcp/McpAgentContextBinder.java": {
+    "mtime": 1790376367.4713054,
+    "seen": 1790377167.27505,
+    "ast_hash": "1729068e733a72810ab8ff26f836dbce",
+    "semantic_hash": "1729068e733a72810ab8ff26f836dbce"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/mcp/McpJsonEncoder.java": {
+    "mtime": 1789161293.0250034,
+    "seen": 1790377167.27505,
+    "ast_hash": "76be094f2f47eb0174acfc6bc8505691",
+    "semantic_hash": "76be094f2f47eb0174acfc6bc8505691"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/mcp/ResourceProvenance.java": {
+    "mtime": 1790372007.7517297,
+    "seen": 1790377167.27505,
+    "ast_hash": "667a1bee410525cf2d60185f358094d6",
+    "semantic_hash": "667a1bee410525cf2d60185f358094d6"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/observability/AgentAuditEvent.java": {
+    "mtime": 1789161192.8835695,
+    "seen": 1790377167.275051,
+    "ast_hash": "8d64288494a8084ca9d9618ff6a705c7",
+    "semantic_hash": "8d64288494a8084ca9d9618ff6a705c7"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/observability/AgentAuditService.java": {
+    "mtime": 1790373730.4646604,
+    "seen": 1790377167.275051,
+    "ast_hash": "f80faa915ba120a9bd5992562cca6e14",
+    "semantic_hash": "f80faa915ba120a9bd5992562cca6e14"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/java/com/enterprise/agentapi/observability/AuditLayer.java": {
+    "mtime": 1789161192.8836064,
+    "seen": 1790377167.275052,
+    "ast_hash": "abf789577e2a4b1519e5c41852ed224d",
+    "semantic_hash": "abf789577e2a4b1519e5c41852ed224d"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/agent/AgentRateLimiterTest.java": {
+    "mtime": 1790374297.1010637,
+    "seen": 1790377167.275052,
+    "ast_hash": "e69094672b92f5f137235950252a64b2",
+    "semantic_hash": "e69094672b92f5f137235950252a64b2"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/agent/ExecutionBudgetServiceTest.java": {
+    "mtime": 1789161402.5802886,
+    "seen": 1790377167.275053,
+    "ast_hash": "b6a3d2f7396cf9a7616b7056c1b1010a",
+    "semantic_hash": "b6a3d2f7396cf9a7616b7056c1b1010a"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/agent/RetryBudgetAndTraceTest.java": {
+    "mtime": 1790376389.0668879,
+    "seen": 1790377167.275053,
+    "ast_hash": "66904b9a431b58944abe0bf707c46569",
+    "semantic_hash": "66904b9a431b58944abe0bf707c46569"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/api/ChatWorkflowResolverTest.java": {
+    "mtime": 1790373817.604339,
+    "seen": 1790377167.275054,
+    "ast_hash": "039954e7f86e12fc0c95191c0b1731c8",
+    "semantic_hash": "039954e7f86e12fc0c95191c0b1731c8"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/application/CatalogGovernanceServiceTest.java": {
+    "mtime": 1790374278.2546206,
+    "seen": 1790377167.275054,
+    "ast_hash": "083d22af4750497f383e52f89ae673c9",
+    "semantic_hash": "083d22af4750497f383e52f89ae673c9"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/application/CustomerReportJobServiceTest.java": {
+    "mtime": 1790376209.2093904,
+    "seen": 1790377167.2750552,
+    "ast_hash": "dbc3ddb077a71e91407ad862a6b10df4",
+    "semantic_hash": "dbc3ddb077a71e91407ad862a6b10df4"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/application/SubscriptionCancellationServiceTest.java": {
+    "mtime": 1790372349.3994858,
+    "seen": 1790377167.2750552,
+    "ast_hash": "43c4eddf9668d261aa0c9b483b29db1b",
+    "semantic_hash": "43c4eddf9668d261aa0c9b483b29db1b"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/application/TransactionSearchServiceTest.java": {
+    "mtime": 1790373795.046188,
+    "seen": 1790377167.2750561,
+    "ast_hash": "a7537eefe7c615d4c47c22827e8af995",
+    "semantic_hash": "a7537eefe7c615d4c47c22827e8af995"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/AgentEvalSuiteTest.java": {
+    "mtime": 1790371670.8085482,
+    "seen": 1790377167.2750561,
+    "ast_hash": "3a7e748bf86183b706f90f5445a3ebb2",
+    "semantic_hash": "3a7e748bf86183b706f90f5445a3ebb2"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/BehavioralEvaluator.java": {
+    "mtime": 1790371654.234102,
+    "seen": 1790377167.2750568,
+    "ast_hash": "65de543ddcaabfd718b54db596f06065",
+    "semantic_hash": "65de543ddcaabfd718b54db596f06065"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/BoundaryEvalTest.java": {
+    "mtime": 1790372560.0170093,
+    "seen": 1790377167.2750568,
+    "ast_hash": "522cefb82652d985fdf155e2266393ef",
+    "semantic_hash": "522cefb82652d985fdf155e2266393ef"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/ContextTrustEvalTest.java": {
+    "mtime": 1790373774.9620097,
+    "seen": 1790377167.2750568,
+    "ast_hash": "d38031acc1a8952d3921294f1103f653",
+    "semantic_hash": "d38031acc1a8952d3921294f1103f653"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/EvalCriterion.java": {
+    "mtime": 1790371634.152852,
+    "seen": 1790377167.275058,
+    "ast_hash": "2d93277e537acb48d0d979a3766366f1",
+    "semantic_hash": "2d93277e537acb48d0d979a3766366f1"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/EvalExpectation.java": {
+    "mtime": 1790371635.901118,
+    "seen": 1790377167.275058,
+    "ast_hash": "80c95c024bf71a49751f16d827348b7d",
+    "semantic_hash": "80c95c024bf71a49751f16d827348b7d"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/EvalHarness.java": {
+    "mtime": 1790376207.08238,
+    "seen": 1790377167.275059,
+    "ast_hash": "72da873064be369ada0582ca7caeedf6",
+    "semantic_hash": "72da873064be369ada0582ca7caeedf6"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/EvalVerdict.java": {
+    "mtime": 1790371634.2741387,
+    "seen": 1790377167.275059,
+    "ast_hash": "ad86db346f4ce79bdcb7ef2be6c332bd",
+    "semantic_hash": "ad86db346f4ce79bdcb7ef2be6c332bd"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/GoldenScenario.java": {
+    "mtime": 1790371687.3480945,
+    "seen": 1790377167.27506,
+    "ast_hash": "fd3dc4b592cb8b9b95352ffc956eec6b",
+    "semantic_hash": "fd3dc4b592cb8b9b95352ffc956eec6b"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/GoldenScenarios.java": {
+    "mtime": 1790374258.9879305,
+    "seen": 1790377167.27506,
+    "ast_hash": "e83a8558f3a94a518419f249ece4e9ca",
+    "semantic_hash": "e83a8558f3a94a518419f249ece4e9ca"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/IdentityEvalTest.java": {
+    "mtime": 1790376389.3212688,
+    "seen": 1790377167.275061,
+    "ast_hash": "8f78c2164e957d8d14cfae2ef252d3a7",
+    "semantic_hash": "8f78c2164e957d8d14cfae2ef252d3a7"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/RecordingToolListener.java": {
+    "mtime": 1790371646.5620346,
+    "seen": 1790377167.275061,
+    "ast_hash": "24d2b8c2e94eba7d79e7097f075b921b",
+    "semantic_hash": "24d2b8c2e94eba7d79e7097f075b921b"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/ScriptedTurn.java": {
+    "mtime": 1790371636.5401323,
+    "seen": 1790377167.275061,
+    "ast_hash": "b87e0f728cbf0438d0c6706fff508d3c",
+    "semantic_hash": "b87e0f728cbf0438d0c6706fff508d3c"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/ToolContractEvalTest.java": {
+    "mtime": 1790374260.0272624,
+    "seen": 1790377167.275062,
+    "ast_hash": "198a582aeb6bc9e34f53ddc070e3db0e",
+    "semantic_hash": "198a582aeb6bc9e34f53ddc070e3db0e"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/eval/ToolDescriptionContractTest.java": {
+    "mtime": 1790374261.4293373,
+    "seen": 1790377167.275062,
+    "ast_hash": "4ab6f54050cf91a51e49f0ae43364791",
+    "semantic_hash": "4ab6f54050cf91a51e49f0ae43364791"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/test/java/com/enterprise/agentapi/observability/AgentAuditServiceTest.java": {
+    "mtime": 1790373819.5265803,
+    "seen": 1790377167.275063,
+    "ast_hash": "e605057360150885c44998b0cb354969",
+    "semantic_hash": "e605057360150885c44998b0cb354969"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/README.md": {
+    "mtime": 1790376552.3173819,
+    "seen": 1790377167.275063,
+    "ast_hash": "75511d0ff248be76d608aa598adbfa5e",
+    "semantic_hash": "75511d0ff248be76d608aa598adbfa5e"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/docs/Designing_Enterprise_APIs_AI_Agents_V2_M1_checkpoint.md": {
+    "mtime": 1787610141.7518785,
+    "seen": 1790377167.275064,
+    "ast_hash": "e63fb7844c90ce82a7b1e342be097a5d",
+    "semantic_hash": "e63fb7844c90ce82a7b1e342be097a5d"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/docs/Designing_Enterprise_APIs_AI_Agents_V2_M6_checkpoint.md": {
+    "mtime": 1787610849.2552698,
+    "seen": 1790377167.275064,
+    "ast_hash": "998624df69e45e0ec78b46e776cbe707",
+    "semantic_hash": "998624df69e45e0ec78b46e776cbe707"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/docs/Designing_Enterprise_APIs_AI_Agents_V2_working.md": {
+    "mtime": 1787610839.1302123,
+    "seen": 1790377167.2750652,
+    "ast_hash": "856dbdbd5e3f50bbe5b092a36643cd49",
+    "semantic_hash": "856dbdbd5e3f50bbe5b092a36643cd49"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/src/main/resources/application.yml": {
+    "mtime": 1790376196.6062179,
+    "seen": 1790377167.2750652,
+    "ast_hash": "70e8c2edf0d06be7c8da92d462147054",
+    "semantic_hash": "70e8c2edf0d06be7c8da92d462147054"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/docs/Picture1.png": {
+    "mtime": 1788206034.6184242,
+    "seen": 1790377167.2750661,
+    "ast_hash": "7d0e939cc73a68d5ee48ea61a5908f05",
+    "semantic_hash": "7d0e939cc73a68d5ee48ea61a5908f05"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/docs/Picture2.png": {
+    "mtime": 1788206156.3671849,
+    "seen": 1790377167.2750661,
+    "ast_hash": "42308045bf28fd859abc16f5e29f242d",
+    "semantic_hash": "42308045bf28fd859abc16f5e29f242d"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/docs/Picture3.png": {
+    "mtime": 1788206529.2489598,
+    "seen": 1790377167.2750669,
+    "ast_hash": "26552c5b45ad2d61632040c16a101acc",
+    "semantic_hash": "26552c5b45ad2d61632040c16a101acc"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/docs/Picture4.png": {
+    "mtime": 1788206629.3583782,
+    "seen": 1790377167.2750669,
+    "ast_hash": "8905851a4715fa45966017156d038a25",
+    "semantic_hash": "8905851a4715fa45966017156d038a25"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/docs/Picture5.png": {
+    "mtime": 1788207328.321022,
+    "seen": 1790377167.2750678,
+    "ast_hash": "cdf163aedeefe9b146707aaafed49fb2",
+    "semantic_hash": "cdf163aedeefe9b146707aaafed49fb2"
+  },
+  "/Users/gustavosoto1/Documents/project/API_AI/V2/api_llm_v2/code/docs/Picture6.png": {
+    "mtime": 1788207866.8263178,
+    "seen": 1790377167.2750678,
+    "ast_hash": "f184e539fd63f7216326b631649f2948",
+    "semantic_hash": "f184e539fd63f7216326b631649f2948"
+  }
+}

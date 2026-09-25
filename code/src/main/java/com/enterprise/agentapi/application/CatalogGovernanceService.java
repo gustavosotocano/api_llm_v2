@@ -8,9 +8,9 @@ import com.enterprise.agentapi.domain.CatalogProposalType;
 import com.enterprise.agentapi.domain.OperationRetry;
 import com.enterprise.agentapi.domain.SemanticStatus;
 import com.enterprise.agentapi.enterprise.CatalogChangeApi;
-import com.enterprise.agentapi.infrastructure.CatalogProposalStore;
-import com.enterprise.agentapi.infrastructure.CategoryDictionaryRepository;
-import com.enterprise.agentapi.infrastructure.IdempotencyStore;
+import com.enterprise.agentapi.application.port.CatalogProposalStore;
+import com.enterprise.agentapi.application.port.CategoryDictionaryRepository;
+import com.enterprise.agentapi.application.port.IdempotencyStore;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;

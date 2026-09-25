@@ -6,10 +6,10 @@ import com.enterprise.agentapi.agent.AgentProperties;
 import com.enterprise.agentapi.domain.IdentityType;
 import com.enterprise.agentapi.domain.SemanticStatus;
 import com.enterprise.agentapi.domain.SubscriptionCancellationRequest;
-import com.enterprise.agentapi.infrastructure.ConfirmationTokenStore;
-import com.enterprise.agentapi.infrastructure.IdempotencyStore;
-import com.enterprise.agentapi.infrastructure.SubscriptionRegistry;
-import com.enterprise.agentapi.infrastructure.TransactionRepository;
+import com.enterprise.agentapi.infrastructure.InMemoryConfirmationTokenStore;
+import com.enterprise.agentapi.infrastructure.InMemoryIdempotencyStore;
+import com.enterprise.agentapi.infrastructure.InMemorySubscriptionRegistry;
+import com.enterprise.agentapi.infrastructure.InMemoryTransactionRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,10 +23,10 @@ class SubscriptionCancellationServiceTest {
     void setUp() {
         var properties = new AgentProperties();
         service = new SubscriptionCancellationService(
-                new IdempotencyStore(),
-                new ConfirmationTokenStore(properties),
-                new SubscriptionRegistry(),
-                new TransactionRepository());
+                new InMemoryIdempotencyStore(),
+                new InMemoryConfirmationTokenStore(properties),
+                new InMemorySubscriptionRegistry(),
+                new InMemoryTransactionRepository());
         AgentContextHolder.set(new AgentContext("session-1", "user-123", "TEST", IdentityType.USER_DELEGATED));
     }
 

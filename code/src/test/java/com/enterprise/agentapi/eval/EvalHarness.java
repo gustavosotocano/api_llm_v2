@@ -19,14 +19,14 @@ import com.enterprise.agentapi.domain.AgentWorkflow;
 import com.enterprise.agentapi.domain.IdentityType;
 import com.enterprise.agentapi.domain.JobResponse;
 import com.enterprise.agentapi.domain.SubscriptionCancellationResponse;
-import com.enterprise.agentapi.infrastructure.AsyncJobStore;
-import com.enterprise.agentapi.infrastructure.CustomerProfileRepository;
-import com.enterprise.agentapi.infrastructure.CatalogProposalStore;
-import com.enterprise.agentapi.infrastructure.CategoryDictionaryRepository;
-import com.enterprise.agentapi.infrastructure.ConfirmationTokenStore;
-import com.enterprise.agentapi.infrastructure.IdempotencyStore;
-import com.enterprise.agentapi.infrastructure.SubscriptionRegistry;
-import com.enterprise.agentapi.infrastructure.TransactionRepository;
+import com.enterprise.agentapi.infrastructure.InMemoryAsyncJobStore;
+import com.enterprise.agentapi.infrastructure.InMemoryCustomerProfileRepository;
+import com.enterprise.agentapi.infrastructure.InMemoryCatalogProposalStore;
+import com.enterprise.agentapi.infrastructure.InMemoryCategoryDictionaryRepository;
+import com.enterprise.agentapi.infrastructure.InMemoryConfirmationTokenStore;
+import com.enterprise.agentapi.infrastructure.InMemoryIdempotencyStore;
+import com.enterprise.agentapi.infrastructure.InMemorySubscriptionRegistry;
+import com.enterprise.agentapi.infrastructure.InMemoryTransactionRepository;
 import com.enterprise.agentapi.observability.AgentAuditService;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -58,24 +58,24 @@ public final class EvalHarness {
                 new ToolAccessPolicy(),
                 List.of(recorder),
                 new RetryBudgetService(properties));
-        var dictionary = new CategoryDictionaryRepository();
-        var transactions = new TransactionRepository();
+        var dictionary = new InMemoryCategoryDictionaryRepository();
+        var transactions = new InMemoryTransactionRepository();
         var search = new TransactionSearchService(transactions, dictionary, clock);
-        var subscriptions = new SubscriptionRegistry();
-        var idempotency = new IdempotencyStore();
+        var subscriptions = new InMemorySubscriptionRegistry();
+        var idempotency = new InMemoryIdempotencyStore();
         var cancellation = new SubscriptionCancellationService(
                 idempotency,
-                new ConfirmationTokenStore(properties),
+                new InMemoryConfirmationTokenStore(properties),
                 subscriptions,
                 transactions);
         var operations = new BankingToolOperations(
                 search,
                 cancellation,
-                new CatalogGovernanceService(dictionary, new CatalogProposalStore(), idempotency, properties),
+                new CatalogGovernanceService(dictionary, new InMemoryCatalogProposalStore(), idempotency, properties),
                 new CustomerReportJobService(
-                        new AsyncJobStore(),
+                        new InMemoryAsyncJobStore(),
                         idempotency,
-                        new CustomerProfileService(new CustomerProfileRepository()),
+                        new CustomerProfileService(new InMemoryCustomerProfileRepository()),
                         search,
                         cancellation,
                         audit),

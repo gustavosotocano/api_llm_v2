@@ -6,10 +6,10 @@ import com.enterprise.agentapi.domain.SubscriptionCancellationRequest;
 import com.enterprise.agentapi.domain.SubscriptionCancellationResponse;
 import com.enterprise.agentapi.domain.SubscriptionSnapshot;
 import com.enterprise.agentapi.enterprise.SubscriptionCommandApi;
-import com.enterprise.agentapi.infrastructure.ConfirmationTokenStore;
-import com.enterprise.agentapi.infrastructure.IdempotencyStore;
-import com.enterprise.agentapi.infrastructure.SubscriptionRegistry;
-import com.enterprise.agentapi.infrastructure.TransactionRepository;
+import com.enterprise.agentapi.application.port.ConfirmationTokenStore;
+import com.enterprise.agentapi.application.port.IdempotencyStore;
+import com.enterprise.agentapi.application.port.SubscriptionRegistry;
+import com.enterprise.agentapi.application.port.TransactionRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
