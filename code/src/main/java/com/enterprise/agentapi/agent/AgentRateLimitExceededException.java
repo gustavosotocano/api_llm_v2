@@ -17,6 +17,8 @@ public class AgentRateLimitExceededException extends RuntimeException {
 
     private static String message(String agentSessionId, String toolName, RateLimitScope scope, int retryAfterSeconds) {
         return switch (scope) {
+            case USER -> "User exceeded the invocation limit. Retry after %d seconds."
+                    .formatted(retryAfterSeconds);
             case SESSION -> "Agent session %s exceeded global rate limit. Retry after %d seconds."
                     .formatted(agentSessionId, retryAfterSeconds);
             case TOOL -> "Agent session %s exceeded rate limit for tool %s. Retry after %d seconds."

@@ -13,10 +13,11 @@ public record AsyncJob(
         Instant updatedAt,
         int pollAfterSeconds,
         Map<String, Object> result,
-        String errorMessage
+        String errorMessage,
+        String toolCallId
 ) {
     public AsyncJob withStatus(JobStatus next, Instant updatedAt, Map<String, Object> result, String errorMessage) {
         return new AsyncJob(jobId, userId, agentSessionId, operation, next, createdAt, updatedAt,
-                pollAfterSeconds, result, errorMessage);
+                pollAfterSeconds, result, errorMessage, toolCallId);
     }
 }

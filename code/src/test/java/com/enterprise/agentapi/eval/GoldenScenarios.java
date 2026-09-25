@@ -108,6 +108,7 @@ public final class GoldenScenarios {
                                 "categoryCode", "UTILITIES",
                                 "merchants", "ENEL,EPM",
                                 "reason", "User asked for utility bills",
+                                "idempotencyKey", "eval-catalog-propose-1",
                                 "userId", "user-123",
                                 "agentSessionId", "eval-catalog-001")),
                 EvalExpectation.builder()
@@ -167,7 +168,8 @@ public final class GoldenScenarios {
                         ScriptedTurn.of(
                                 "startCustomerReport",
                                 "userId", "user-123",
-                                "period", "LAST_3_MONTHS"),
+                                "period", "LAST_3_MONTHS",
+                                "idempotencyKey", "eval-job-001-report"),
                         ScriptedTurn.of("getJobStatus", "jobId", "${jobId}"),
                         ScriptedTurn.of("wait", "millis", 1200),
                         ScriptedTurn.of("getJobStatus", "jobId", "${jobId}"),
@@ -213,7 +215,8 @@ public final class GoldenScenarios {
                 List.of(ScriptedTurn.of(
                         "startCustomerReport",
                         "userId", "user-123",
-                        "period", "YESTERDAY")),
+                        "period", "YESTERDAY",
+                        "idempotencyKey", "eval-job-002-report")),
                 EvalExpectation.builder()
                         .requiredTools("startCustomerReport")
                         .expectedFinalStatus(SemanticStatus.INVALID_PERIOD)

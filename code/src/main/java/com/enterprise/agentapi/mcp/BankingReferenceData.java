@@ -61,7 +61,8 @@ public class BankingReferenceData {
 
     public Map<String, Object> operationalPolicy() {
         return Map.of(
-                "rateLimit", "Frequency of invocation. Status RATE_LIMITED or AGENT_LOOP_DETECTED.",
+                "rateLimit", "Frequency of invocation per user, session, and tool. Status RATE_LIMITED or AGENT_LOOP_DETECTED.",
+                "retry", "Authoritative retry field: RETRY_AFTER, DO_NOT_RETRY, IN_PROGRESS, ALREADY_COMPLETED, PERMANENT_FAILURE.",
                 "costGovernance", "Expense of a successful execution. Status BUDGET_EXCEEDED.",
                 "longRunning", List.of(
                         "startCustomerReport returns ACCEPTED + jobId",

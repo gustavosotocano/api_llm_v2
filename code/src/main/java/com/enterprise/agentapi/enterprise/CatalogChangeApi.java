@@ -11,5 +11,6 @@ public interface CatalogChangeApi {
                                   List<String> merchants,
                                   String reason,
                                   String agentSessionId,
-                                  String userId);
+                                  String userId,
+                                  String idempotencyKey);
 }

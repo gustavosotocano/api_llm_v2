@@ -5,10 +5,12 @@ import com.enterprise.agentapi.domain.CatalogChangeProposal;
 import com.enterprise.agentapi.domain.CatalogChangeResponse;
 import com.enterprise.agentapi.domain.CatalogProposalStatus;
 import com.enterprise.agentapi.domain.CatalogProposalType;
+import com.enterprise.agentapi.domain.OperationRetry;
 import com.enterprise.agentapi.domain.SemanticStatus;
 import com.enterprise.agentapi.enterprise.CatalogChangeApi;
 import com.enterprise.agentapi.infrastructure.CatalogProposalStore;
 import com.enterprise.agentapi.infrastructure.CategoryDictionaryRepository;
+import com.enterprise.agentapi.infrastructure.IdempotencyStore;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -22,13 +24,16 @@ import java.util.stream.Collectors;
 public class CatalogGovernanceService implements CatalogChangeApi {
     private final CategoryDictionaryRepository dictionaryRepository;
     private final CatalogProposalStore proposalStore;
+    private final IdempotencyStore idempotencyStore;
     private final AgentProperties agentProperties;
 
     public CatalogGovernanceService(CategoryDictionaryRepository dictionaryRepository,
                                     CatalogProposalStore proposalStore,
+                                    IdempotencyStore idempotencyStore,
                                     AgentProperties agentProperties) {
         this.dictionaryRepository = dictionaryRepository;
         this.proposalStore = proposalStore;
+        this.idempotencyStore = idempotencyStore;
         this.agentProperties = agentProperties;
     }
 
@@ -38,10 +43,29 @@ public class CatalogGovernanceService implements CatalogChangeApi {
                                          List<String> merchants,
                                          String reason,
                                          String agentSessionId,
-                                         String userId) {
+                                         String userId,
+                                         String idempotencyKey) {
+        var key = idempotencyKey == null || idempotencyKey.isBlank() ? null : idempotencyKey.trim();
+        if (key == null) {
+            return response(SemanticStatus.CLARIFICATION_REQUIRED,
+                    "idempotencyKey is required to propose a catalog change.",
+                    null, proposalType, categoryCode, merchants, null,
+                    List.of("Send a stable idempotencyKey for this proposal"));
+        }
         var category = normalizeCategory(categoryCode);
         var merchantSet = normalizeMerchants(merchants);
         var normalizedReason = normalizeReason(reason);
+        var fingerprint = userId + "|" + proposalType + "|" + category + "|" + merchantSet + "|" + normalizedReason;
+        if (idempotencyStore.hasDifferentPayload(key, fingerprint)) {
+            return response(SemanticStatus.IDEMPOTENCY_CONFLICT,
+                    "The same Idempotency-Key was already used with different parameters.",
+                    null, proposalType, category, List.copyOf(merchantSet), null,
+                    List.of("Reuse the original parameters or generate a new idempotencyKey"));
+        }
+        var cached = idempotencyStore.find(key, CatalogChangeResponse.class);
+        if (cached.isPresent()) {
+            return cached.get();
+        }
 
         if (proposalType == CatalogProposalType.NEW_CATEGORY) {
             if (dictionaryRepository.exists(category)) {
@@ -77,13 +101,15 @@ public class CatalogGovernanceService implements CatalogChangeApi {
                 Instant.now(), approvalToken, null, null, null);
         proposalStore.save(proposal);
 
-        return response(SemanticStatus.CATALOG_CHANGE_PENDING_REVIEW,
+        var submitted = response(SemanticStatus.CATALOG_CHANGE_PENDING_REVIEW,
                 "Catalog change submitted for human review. The agent cannot apply it directly.",
                 proposalId, proposalType, category, List.copyOf(merchantSet), approvalToken,
                 List.of(
                         "A human reviewer must approve via POST /debug/governance/catalog/proposals/" + proposalId + "/approve",
                         "Use X-Governance-Reviewer and X-Governance-Approval-Token headers",
                         "Read resource banking://governance/pending-proposals"));
+        idempotencyStore.save(key, submitted, fingerprint);
+        return submitted;
     }
 
     public CatalogChangeResponse approve(String proposalId, String reviewerId, String approvalToken) {
@@ -183,7 +209,8 @@ public class CatalogGovernanceService implements CatalogChangeApi {
         return new CatalogChangeResponse(
                 status, message, proposalId, type, category,
                 merchants == null ? List.of() : merchants, approvalToken,
-                dictionaryRepository.knownCategories(), suggestions);
+                dictionaryRepository.knownCategories(), suggestions,
+                OperationRetry.forStatus(status, null));
     }
 
     private String normalizeCategory(String category) {

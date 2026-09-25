@@ -168,6 +168,7 @@ class ToolContractEvalTest {
                         "categoryCode", "UTILITIES",
                         "merchants", "",
                         "reason", "needed",
+                        "idempotencyKey", "contract-cat-clarify-1",
                         "userId", "user-123",
                         "agentSessionId", "contract-cat-1")),
                 EvalExpectation.builder()

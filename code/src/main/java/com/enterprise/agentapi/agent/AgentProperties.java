@@ -67,6 +67,8 @@ public class AgentProperties {
     public static class RateLimit {
         private int maxRequestsPerWindow = 20;
         private int windowSeconds = 60;
+        private int maxRequestsPerUserWindow = 40;
+        private int userWindowSeconds = 60;
         private Map<String, ToolLimit> perTool = defaultPerToolLimits();
         private LoopDetection loopDetection = new LoopDetection();
 
@@ -84,6 +86,22 @@ public class AgentProperties {
 
         public void setWindowSeconds(int windowSeconds) {
             this.windowSeconds = windowSeconds;
+        }
+
+        public int getMaxRequestsPerUserWindow() {
+            return maxRequestsPerUserWindow;
+        }
+
+        public void setMaxRequestsPerUserWindow(int maxRequestsPerUserWindow) {
+            this.maxRequestsPerUserWindow = maxRequestsPerUserWindow;
+        }
+
+        public int getUserWindowSeconds() {
+            return userWindowSeconds;
+        }
+
+        public void setUserWindowSeconds(int userWindowSeconds) {
+            this.userWindowSeconds = userWindowSeconds;
         }
 
         public Map<String, ToolLimit> getPerTool() {

@@ -37,11 +37,13 @@ class ToolDescriptionContractTest {
                 .contains("human confirmation");
         assertThat(descriptions.get("proposeCatalogChange"))
                 .contains("does not apply")
-                .contains("human review");
+                .contains("human review")
+                .contains("idempotencykey");
         assertThat(descriptions.get("startCustomerReport"))
                 .contains("jobid")
                 .contains("getjobstatus")
-                .contains("getjobresult");
+                .contains("getjobresult")
+                .contains("idempotencykey");
     }
 
     @Test

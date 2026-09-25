@@ -4,6 +4,7 @@ import com.enterprise.agentapi.agent.AgentProperties;
 import com.enterprise.agentapi.domain.CatalogProposalType;
 import com.enterprise.agentapi.domain.SemanticStatus;
 import com.enterprise.agentapi.infrastructure.CatalogProposalStore;
+import com.enterprise.agentapi.infrastructure.IdempotencyStore;
 import com.enterprise.agentapi.infrastructure.CategoryDictionaryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,13 +20,13 @@ class CatalogGovernanceServiceTest {
     @BeforeEach
     void setUp() {
         dictionary = new CategoryDictionaryRepository();
-        service = new CatalogGovernanceService(dictionary, new CatalogProposalStore(), new AgentProperties());
+        service = new CatalogGovernanceService(dictionary, new CatalogProposalStore(), new IdempotencyStore(), new AgentProperties());
     }
 
     @Test
     void agentCanOnlyProposeAndHumanMustApprove() {
         var proposed = service.propose(CatalogProposalType.NEW_CATEGORY, "UTILITIES",
-                List.of("ENEL", "EPM"), "User asked for utilities", "session-1", "user-123");
+                List.of("ENEL", "EPM"), "User asked for utilities", "session-1", "user-123", "catalog-propose-1");
 
         assertThat(proposed.status()).isEqualTo(SemanticStatus.CATALOG_CHANGE_PENDING_REVIEW);
         assertThat(dictionary.exists("UTILITIES")).isFalse();

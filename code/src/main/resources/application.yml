@@ -50,6 +50,8 @@ enterprise:
     rate-limit:
       max-requests-per-window: 20
       window-seconds: 60
+      max-requests-per-user-window: 40
+      user-window-seconds: 60
       per-tool:
         searchRecurringPayments:
           max-requests-per-window: 15

@@ -3,6 +3,7 @@ package com.enterprise.agentapi.application;
 import com.enterprise.agentapi.domain.DateRange;
 import com.enterprise.agentapi.domain.MerchantSummary;
 import com.enterprise.agentapi.domain.PaymentOccurrence;
+import com.enterprise.agentapi.domain.OperationRetry;
 import com.enterprise.agentapi.domain.PeriodOption;
 import com.enterprise.agentapi.domain.RecurringPaymentSearchRequest;
 import com.enterprise.agentapi.domain.RecurringPaymentSearchResponse;
@@ -95,7 +96,8 @@ public class TransactionSearchService implements TransactionQueryApi {
         var total = transactions.stream().map(Transaction::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
         return new RecurringPaymentSearchResponse(
                 status, message, category, dictionaryRepository.knownCategories(), suggestions,
-                period, fromDate, toDate, transactions, summaries, total, transactions.size());
+                period, fromDate, toDate, transactions, summaries, total, transactions.size(),
+                OperationRetry.forStatus(status, null));
     }
 
     private List<MerchantSummary> buildSummaries(List<Transaction> transactions) {

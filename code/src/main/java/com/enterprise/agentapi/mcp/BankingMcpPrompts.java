@@ -116,13 +116,13 @@ public class BankingMcpPrompts {
         var system = """
                 You are starting a long-running report. Do not block waiting on one call.
 
-                1. Call startCustomerReport userId=%s period=%s agentSessionId=%s
+                1. Call startCustomerReport userId=%s period=%s idempotencyKey=%s-report agentSessionId=%s
                 2. If status is ACCEPTED, keep jobId.
                 3. Poll getJobStatus until jobStatus is COMPLETED.
                 4. Then call getJobResult.
                 5. If status is OPERATION_IN_PROGRESS, wait pollAfterSeconds. Do not start a second report.
                 6. If status or jobStatus is CANCELLED, stop. Do not call getJobResult.
-                """.formatted(userId, resolvedPeriod, resolvedSession);
+                """.formatted(userId, resolvedPeriod, resolvedSession, resolvedSession);
         return promptResult("customer-report-flow", system);
     }
 

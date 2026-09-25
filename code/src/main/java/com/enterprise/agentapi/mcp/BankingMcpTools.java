@@ -68,42 +68,47 @@ public class BankingMcpTools {
             name = "proposeCatalogChange",
             description = """
                     Propose a controlled catalog change for human review. Does NOT apply changes.
+                    Requires idempotencyKey. Repeating the same key returns the existing proposal.
                     Use when category is unknown or new merchants are needed.
                     proposalType: NEW_CATEGORY | ADD_MERCHANTS.
                     merchants: comma-separated (HBO_MAX,APPLE_TV).
                     Read banking://governance/catalog-policy first.
                     """,
             generateOutputSchema = false,
-            annotations = @McpTool.McpAnnotations(readOnlyHint = false, destructiveHint = false, idempotentHint = false))
+            annotations = @McpTool.McpAnnotations(readOnlyHint = false, destructiveHint = false, idempotentHint = true))
     public CallToolResult proposeCatalogChange(
             @McpToolParam(description = "NEW_CATEGORY or ADD_MERCHANTS") String proposalType,
             @McpToolParam(description = "Category code") String categoryCode,
             @McpToolParam(description = "Comma-separated merchant codes") String merchants,
             @McpToolParam(description = "Business justification") String reason,
+            @McpToolParam(description = "Stable idempotency key for this proposal") String idempotencyKey,
             @McpToolParam(description = "User id") String userId,
             @McpToolParam(description = "Agent session id", required = false) String agentSessionId,
             McpMeta meta) {
         return invoke("proposeCatalogChange", agentSessionId, userId, meta,
-                () -> operations.proposeCatalogChange(proposalType, categoryCode, merchants, reason, userId, agentSessionId));
+                () -> operations.proposeCatalogChange(
+                        proposalType, categoryCode, merchants, reason, userId, agentSessionId, idempotencyKey));
     }
 
     @McpTool(
             name = "startCustomerReport",
             description = """
                     Start a long-running customer report. Do not wait for the result.
+                    Requires idempotencyKey. Repeating the same key returns the existing job.
                     Returns ACCEPTED with jobId. Then poll getJobStatus and finally getJobResult.
                     The tool composes customer, transaction, and subscription domain APIs.
                     Do not call those domain APIs separately.
                     """,
             generateOutputSchema = false,
-            annotations = @McpTool.McpAnnotations(readOnlyHint = false, destructiveHint = false, idempotentHint = false))
+            annotations = @McpTool.McpAnnotations(readOnlyHint = false, destructiveHint = false, idempotentHint = true))
     public CallToolResult startCustomerReport(
             @McpToolParam(description = "Authenticated user id") String userId,
             @McpToolParam(description = "Period enum, default LAST_3_MONTHS", required = false) String period,
+            @McpToolParam(description = "Stable idempotency key for this report") String idempotencyKey,
             @McpToolParam(description = "Agent session id", required = false) String agentSessionId,
             McpMeta meta) {
         return invoke("startCustomerReport", agentSessionId, userId, meta,
-                () -> operations.startCustomerReport(userId, period));
+                () -> operations.startCustomerReport(userId, period, idempotencyKey));
     }
 
     @McpTool(

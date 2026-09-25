@@ -12,5 +12,6 @@ public record SubscriptionCancellationResponse(
         String confirmationToken,
         String operationId,
         Instant executedAt,
-        List<String> suggestions
+        List<String> suggestions,
+        OperationRetry retry
 ) {}

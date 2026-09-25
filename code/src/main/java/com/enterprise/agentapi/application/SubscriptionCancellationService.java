@@ -1,5 +1,6 @@
 package com.enterprise.agentapi.application;
 
+import com.enterprise.agentapi.domain.OperationRetry;
 import com.enterprise.agentapi.domain.SemanticStatus;
 import com.enterprise.agentapi.domain.SubscriptionCancellationRequest;
 import com.enterprise.agentapi.domain.SubscriptionCancellationResponse;
@@ -146,7 +147,8 @@ public class SubscriptionCancellationService implements SubscriptionCommandApi {
                                                       String merchant, String idempotencyKey, String confirmationToken,
                                                       String operationId, Instant executedAt, List<String> suggestions) {
         return new SubscriptionCancellationResponse(
-                status, message, userId, merchant, idempotencyKey, confirmationToken, operationId, executedAt, suggestions);
+                status, message, userId, merchant, idempotencyKey, confirmationToken, operationId, executedAt, suggestions,
+                OperationRetry.forStatus(status, null));
     }
 
     private String normalizeUserId(String userId) {

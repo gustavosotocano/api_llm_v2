@@ -11,5 +11,6 @@ public record CatalogChangeResponse(
         List<String> merchants,
         String approvalToken,
         List<String> knownCategories,
-        List<String> suggestions
+        List<String> suggestions,
+        OperationRetry retry
 ) {}

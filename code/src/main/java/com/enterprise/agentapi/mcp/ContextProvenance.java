@@ -42,7 +42,7 @@ public final class ContextProvenance {
                 "tool:" + toolName,
                 TrustLevel.UNTRUSTED_CONTENT,
                 data,
-                List.of("status", "message", "suggestions", "confirmationToken", "jobId", "jobStatus", "pollAfterSeconds"));
+                List.of("status", "message", "suggestions", "retry", "confirmationToken", "jobId", "jobStatus", "pollAfterSeconds"));
     }
 
     public static Map<String, Object> resource(String resourceId, TrustLevel trustLevel, Object data) {

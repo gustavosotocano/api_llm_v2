@@ -4,6 +4,7 @@ import com.enterprise.agentapi.domain.AsyncJob;
 import com.enterprise.agentapi.domain.JobStatus;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -19,6 +20,13 @@ public class AsyncJobStore {
 
     public Optional<AsyncJob> find(String jobId) {
         return Optional.ofNullable(jobs.get(jobId));
+    }
+
+    public List<AsyncJob> inFlightForSession(String agentSessionId) {
+        return jobs.values().stream()
+                .filter(job -> agentSessionId != null && agentSessionId.equals(job.agentSessionId()))
+                .filter(job -> job.status() == JobStatus.PENDING || job.status() == JobStatus.RUNNING)
+                .toList();
     }
 
     public synchronized boolean compareAndSet(String jobId, Set<JobStatus> expected, AsyncJob next) {

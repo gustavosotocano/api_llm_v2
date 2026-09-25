@@ -10,5 +10,7 @@ public record JobResponse(
         JobStatus jobStatus,
         Integer pollAfterSeconds,
         Map<String, Object> result,
-        List<String> suggestions
+        List<String> suggestions,
+        String toolCallId,
+        OperationRetry retry
 ) {}

@@ -117,11 +117,12 @@ public class DebugController {
     @PostMapping("/jobs/reports")
     public JobResponse startReport(@RequestParam String userId,
                                    @RequestParam(defaultValue = "LAST_3_MONTHS") String period,
+                                   @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
                                    @RequestHeader(value = "X-Agent-Session-Id", required = false) String agentSessionId) {
         var sessionId = AgentSessionSupport.resolveSessionId(agentSessionId);
         AgentSessionSupport.bind(sessionId, userId, "DEBUG_API", IdentityType.USER_DELEGATED, AgentWorkflow.REPORT);
         try {
-            return reportJobService.startReport(userId, period);
+            return reportJobService.startReport(userId, period, idempotencyKey);
         } finally {
             AgentSessionSupport.clear();
         }

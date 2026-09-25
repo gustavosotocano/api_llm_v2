@@ -1,5 +1,6 @@
 package com.enterprise.agentapi.ai;
 
+import com.enterprise.agentapi.agent.AgentContext;
 import com.enterprise.agentapi.agent.AgentContextHolder;
 import com.enterprise.agentapi.agent.AgentRateLimitExceededException;
 import com.enterprise.agentapi.agent.AgentRateLimitSupport;
@@ -9,6 +10,7 @@ import com.enterprise.agentapi.agent.ExecutionBudgetService;
 import com.enterprise.agentapi.agent.RateLimitScope;
 import com.enterprise.agentapi.agent.ToolAccessDeniedException;
 import com.enterprise.agentapi.agent.ToolAccessPolicy;
+import com.enterprise.agentapi.agent.ToolCallIds;
 import com.enterprise.agentapi.application.IdentityGuard;
 import com.enterprise.agentapi.domain.SemanticStatus;
 import com.enterprise.agentapi.observability.AgentAuditService;
@@ -45,9 +47,20 @@ public class AgentToolSupport {
         if (context == null) {
             throw new IllegalStateException("Agent context is not set for this tool invocation");
         }
+        var toolCallId = ToolCallIds.open();
+        try {
+            return executeWithCallId(toolName, inferredParameters, action, context, toolCallId);
+        } finally {
+            ToolCallIds.clear();
+        }
+    }
+
+    private <T> T executeWithCallId(String toolName, Map<String, Object> inferredParameters, Supplier<T> action,
+                                    AgentContext context, String toolCallId) {
         if (!accessPolicy.allows(context.workflow(), toolName)) {
             auditService.technical(context.agentSessionId(), context.userId(), context.channel(),
                     "TOOL_WORKFLOW_DENIED", Map.of(
+                            "toolCallId", toolCallId,
                             "tool", toolName,
                             "toolVersion", TOOL_CONTRACT_VERSION,
                             "workflow", context.workflow().name()));
@@ -58,6 +71,7 @@ public class AgentToolSupport {
         if (IdentityGuard.authorizeCapability(toolName) != null) {
             auditService.technical(context.agentSessionId(), context.userId(), context.channel(),
                     "TOOL_IDENTITY_DENIED", Map.of(
+                            "toolCallId", toolCallId,
                             "tool", toolName,
                             "toolVersion", TOOL_CONTRACT_VERSION,
                             "identityType", context.identityType().name(),
@@ -75,6 +89,7 @@ public class AgentToolSupport {
             var eventType = ex.scope() == RateLimitScope.LOOP ? "TOOL_LOOP_BLOCKED" : "TOOL_RATE_LIMITED";
             auditService.technical(context.agentSessionId(), context.userId(), context.channel(),
                     eventType, Map.of(
+                            "toolCallId", toolCallId,
                             "tool", toolName,
                             "toolVersion", TOOL_CONTRACT_VERSION,
                             "scope", ex.scope().name(),
@@ -85,6 +100,7 @@ public class AgentToolSupport {
         } catch (BudgetExceededException ex) {
             auditService.technical(context.agentSessionId(), context.userId(), context.channel(),
                     "TOOL_BUDGET_BLOCKED", Map.of(
+                            "toolCallId", toolCallId,
                             "tool", toolName,
                             "toolVersion", TOOL_CONTRACT_VERSION,
                             "usedUnits", ex.usedUnits(),
@@ -97,6 +113,7 @@ public class AgentToolSupport {
         var startedAt = System.nanoTime();
         auditService.ai(context.agentSessionId(), context.userId(), context.channel(),
                 "TOOL_INVOCATION", Map.of(
+                        "toolCallId", toolCallId,
                         "tool", toolName,
                         "toolVersion", TOOL_CONTRACT_VERSION,
                         "identityType", context.identityType().name(),
@@ -110,6 +127,7 @@ public class AgentToolSupport {
             var durationMs = (System.nanoTime() - startedAt) / 1_000_000;
             auditService.technical(context.agentSessionId(), context.userId(), context.channel(),
                     "TOOL_COMPLETED", Map.of(
+                            "toolCallId", toolCallId,
                             "tool", toolName,
                             "toolVersion", TOOL_CONTRACT_VERSION,
                             "durationMs", durationMs,
@@ -121,6 +139,7 @@ public class AgentToolSupport {
             var durationMs = (System.nanoTime() - startedAt) / 1_000_000;
             auditService.technical(context.agentSessionId(), context.userId(), context.channel(),
                     "TOOL_FAILED", Map.of(
+                            "toolCallId", toolCallId,
                             "tool", toolName,
                             "toolVersion", TOOL_CONTRACT_VERSION,
                             "durationMs", durationMs,
@@ -153,10 +172,14 @@ public class AgentToolSupport {
         if (context == null) {
             throw new IllegalStateException("Agent context is not set for this tool invocation");
         }
-        auditService.business(context.agentSessionId(), context.userId(), context.channel(),
-                action, Map.of(
-                        "status", status.name(),
-                        "toolVersion", TOOL_CONTRACT_VERSION,
-                        "details", details));
+        var attributes = new java.util.LinkedHashMap<String, Object>();
+        attributes.put("status", status.name());
+        attributes.put("toolVersion", TOOL_CONTRACT_VERSION);
+        attributes.put("toolCallId", ToolCallIds.current() == null ? "none" : ToolCallIds.current());
+        attributes.put("identityType", context.identityType().name());
+        attributes.put("onBehalfOfUserId", context.onBehalfOfUserId() == null ? "none" : context.onBehalfOfUserId());
+        attributes.put("workflow", context.workflow().name());
+        attributes.put("details", details == null ? Map.of() : details);
+        auditService.business(context.agentSessionId(), context.userId(), context.channel(), action, attributes);
     }
 }

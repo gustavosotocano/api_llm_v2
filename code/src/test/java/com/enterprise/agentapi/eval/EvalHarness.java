@@ -60,17 +60,19 @@ public final class EvalHarness {
         var transactions = new TransactionRepository();
         var search = new TransactionSearchService(transactions, dictionary, clock);
         var subscriptions = new SubscriptionRegistry();
+        var idempotency = new IdempotencyStore();
         var cancellation = new SubscriptionCancellationService(
-                new IdempotencyStore(),
+                idempotency,
                 new ConfirmationTokenStore(properties),
                 subscriptions,
                 transactions);
         var operations = new BankingToolOperations(
                 search,
                 cancellation,
-                new CatalogGovernanceService(dictionary, new CatalogProposalStore(), properties),
+                new CatalogGovernanceService(dictionary, new CatalogProposalStore(), idempotency, properties),
                 new CustomerReportJobService(
                         new AsyncJobStore(),
+                        idempotency,
                         new CustomerProfileService(new CustomerProfileRepository()),
                         search,
                         cancellation),
@@ -120,10 +122,12 @@ public final class EvalHarness {
                     str(args, "merchants"),
                     str(args, "reason"),
                     str(args, "userId"),
-                    str(args, "agentSessionId"));
+                    str(args, "agentSessionId"),
+                    str(args, "idempotencyKey"));
             case "startCustomerReport" -> operations.startCustomerReport(
                     str(args, "userId"),
-                    str(args, "period"));
+                    str(args, "period"),
+                    str(args, "idempotencyKey"));
             case "cancelCustomerReport" -> operations.cancelCustomerReport(str(args, "jobId"));
             case "getJobStatus" -> operations.getJobStatus(str(args, "jobId"));
             case "getJobResult" -> operations.getJobResult(str(args, "jobId"));

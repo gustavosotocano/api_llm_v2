@@ -12,6 +12,7 @@ import com.enterprise.agentapi.enterprise.TransactionQueryApi;
 import com.enterprise.agentapi.domain.CatalogChangeResponse;
 import com.enterprise.agentapi.domain.CatalogProposalType;
 import com.enterprise.agentapi.domain.JobResponse;
+import com.enterprise.agentapi.domain.OperationRetry;
 import com.enterprise.agentapi.domain.PeriodExpressions;
 import com.enterprise.agentapi.domain.PeriodOption;
 import com.enterprise.agentapi.domain.RecurringPaymentSearchRequest;
@@ -65,7 +66,8 @@ public class BankingToolOperations {
                             SemanticStatus.INVALID_DATE_RANGE,
                             "Raw dates are not accepted. Send a semantic period. The backend calculates the range.",
                             category, List.of(), PeriodExpressions.semanticPeriods(),
-                            null, null, null, List.of(), List.of(), BigDecimal.ZERO, 0);
+                            null, null, null, List.of(), List.of(), BigDecimal.ZERO, 0,
+                            OperationRetry.forStatus(SemanticStatus.INVALID_DATE_RANGE, null));
                 }
                 PeriodOption periodOption;
                 try {
@@ -75,7 +77,8 @@ public class BankingToolOperations {
                             SemanticStatus.INVALID_PERIOD,
                             "Unsupported period. Send a semantic period enum, not raw dates.",
                             category, List.of(), PeriodExpressions.semanticPeriods(),
-                            null, null, null, List.of(), List.of(), BigDecimal.ZERO, 0);
+                            null, null, null, List.of(), List.of(), BigDecimal.ZERO, 0,
+                            OperationRetry.forStatus(SemanticStatus.INVALID_PERIOD, null));
                 }
                 var request = new RecurringPaymentSearchRequest(
                         userId, category, merchant, periodOption, limit == null ? 100 : limit);
@@ -107,7 +110,8 @@ public class BankingToolOperations {
                         userId, merchant, idempotencyKey, confirmationToken));
                 agentToolSupport.logBusinessAction("CANCEL_RECURRING_SUBSCRIPTION", response.status(), Map.of(
                         "merchant", response.merchant() == null ? "unknown" : response.merchant(),
-                        "idempotencyKey", response.idempotencyKey() == null ? "none" : response.idempotencyKey()));
+                        "idempotencyKey", response.idempotencyKey() == null ? "none" : response.idempotencyKey(),
+                        "operationId", response.operationId() == null ? "none" : response.operationId()));
                 return response;
             });
         } catch (ToolAccessDeniedException ex) {
@@ -121,7 +125,7 @@ public class BankingToolOperations {
 
     public CatalogChangeResponse proposeCatalogChange(
             String proposalType, String categoryCode, String merchantsCsv, String reason,
-            String userId, String agentSessionId) {
+            String userId, String agentSessionId, String idempotencyKey) {
         try {
             return agentToolSupport.execute("proposeCatalogChange", toolParams(
                     "proposalType", proposalType,
@@ -129,7 +133,8 @@ public class BankingToolOperations {
                     "merchants", merchantsCsv,
                     "reason", reason,
                     "userId", userId,
-                    "agentSessionId", agentSessionId), () -> {
+                    "agentSessionId", agentSessionId,
+                    "idempotencyKey", idempotencyKey), () -> {
                 if (proposalType == null || proposalType.isBlank()) {
                     return clarificationCatalog("proposalType is required.");
                 }
@@ -147,7 +152,7 @@ public class BankingToolOperations {
                     return clarificationCatalog("merchants is required (comma-separated, e.g. HBO_MAX,APPLE_TV).");
                 }
                 var response = catalogGovernanceService.propose(
-                        type, categoryCode, merchants, reason, agentSessionId, userId);
+                        type, categoryCode, merchants, reason, agentSessionId, userId, idempotencyKey);
                 agentToolSupport.logBusinessAction("PROPOSE_CATALOG_CHANGE", response.status(), Map.of(
                         "proposalId", response.proposalId() == null ? "none" : response.proposalId(),
                         "categoryCode", response.categoryCode() == null ? "none" : response.categoryCode()));
@@ -164,11 +169,11 @@ public class BankingToolOperations {
         }
     }
 
-    public JobResponse startCustomerReport(String userId, String period) {
+    public JobResponse startCustomerReport(String userId, String period, String idempotencyKey) {
         try {
             return agentToolSupport.execute("startCustomerReport", toolParams(
-                    "userId", userId, "period", period), () -> {
-                var response = reportJobService.startReport(userId, period);
+                    "userId", userId, "period", period, "idempotencyKey", idempotencyKey), () -> {
+                var response = reportJobService.startReport(userId, period, idempotencyKey);
                 agentToolSupport.logBusinessAction("START_CUSTOMER_REPORT", response.status(), Map.of(
                         "jobId", response.jobId() == null ? "none" : response.jobId()));
                 return response;
@@ -183,8 +188,9 @@ public class BankingToolOperations {
             return agentToolSupport.execute("getJobStatus", toolParams("jobId", jobId), () -> {
                 var response = reportJobService.status(jobId);
                 agentToolSupport.logBusinessAction("GET_JOB_STATUS", response.status(), Map.of(
-                        "jobId", jobId,
-                        "jobStatus", response.jobStatus() == null ? "unknown" : response.jobStatus().name()));
+                        "jobId", jobId == null ? "none" : jobId,
+                        "jobStatus", response.jobStatus() == null ? "unknown" : response.jobStatus().name(),
+                        "originatingToolCallId", response.toolCallId() == null ? "none" : response.toolCallId()));
                 return response;
             });
         } catch (ToolAccessDeniedException | AgentRateLimitExceededException | BudgetExceededException ex) {
@@ -198,7 +204,8 @@ public class BankingToolOperations {
                 var response = reportJobService.cancel(jobId);
                 agentToolSupport.logBusinessAction("CANCEL_CUSTOMER_REPORT", response.status(), Map.of(
                         "jobId", jobId == null ? "none" : jobId,
-                        "jobStatus", response.jobStatus() == null ? "unknown" : response.jobStatus().name()));
+                        "jobStatus", response.jobStatus() == null ? "unknown" : response.jobStatus().name(),
+                        "originatingToolCallId", response.toolCallId() == null ? "none" : response.toolCallId()));
                 return response;
             });
         } catch (ToolAccessDeniedException | AgentRateLimitExceededException | BudgetExceededException ex) {
@@ -210,7 +217,9 @@ public class BankingToolOperations {
         try {
             return agentToolSupport.execute("getJobResult", toolParams("jobId", jobId), () -> {
                 var response = reportJobService.result(jobId);
-                agentToolSupport.logBusinessAction("GET_JOB_RESULT", response.status(), Map.of("jobId", jobId));
+                agentToolSupport.logBusinessAction("GET_JOB_RESULT", response.status(), Map.of(
+                        "jobId", jobId == null ? "none" : jobId,
+                        "originatingToolCallId", response.toolCallId() == null ? "none" : response.toolCallId()));
                 return response;
             });
         } catch (ToolAccessDeniedException | AgentRateLimitExceededException | BudgetExceededException ex) {
@@ -222,7 +231,8 @@ public class BankingToolOperations {
         return new RecurringPaymentSearchResponse(
                 SemanticStatus.INSUFFICIENT_PERMISSIONS, ex.getMessage(), null, List.of(),
                 List.of("Use a workflow that includes this tool, or elevate to FULL"),
-                null, null, null, List.of(), List.of(), BigDecimal.ZERO, 0);
+                null, null, null, List.of(), List.of(), BigDecimal.ZERO, 0,
+                OperationRetry.forStatus(SemanticStatus.INSUFFICIENT_PERMISSIONS, null));
     }
 
     private RecurringPaymentSearchResponse rateLimitedSearch(AgentRateLimitExceededException ex) {
@@ -233,14 +243,16 @@ public class BankingToolOperations {
                         ex.scope() == RateLimitScope.LOOP
                                 ? "Avoid chaining the same tool in a loop"
                                 : "Reduce request frequency"),
-                null, null, null, List.of(), List.of(), BigDecimal.ZERO, 0);
+                null, null, null, List.of(), List.of(), BigDecimal.ZERO, 0,
+                OperationRetry.forStatus(AgentRateLimitSupport.semanticStatus(ex), ex.retryAfterSeconds()));
     }
 
     private RecurringPaymentSearchResponse budgetExceededSearch(BudgetExceededException ex) {
         return new RecurringPaymentSearchResponse(
                 SemanticStatus.BUDGET_EXCEEDED, ex.getMessage(), null, List.of(),
                 List.of("Wait for a new session or reduce high-cost tool use"),
-                null, null, null, List.of(), List.of(), BigDecimal.ZERO, 0);
+                null, null, null, List.of(), List.of(), BigDecimal.ZERO, 0,
+                OperationRetry.forStatus(SemanticStatus.BUDGET_EXCEEDED, null));
     }
 
     private static CatalogChangeResponse clarificationCatalog(String message) {
@@ -248,28 +260,32 @@ public class BankingToolOperations {
                 SemanticStatus.CLARIFICATION_REQUIRED, message,
                 null, null, null, List.of(), null, List.of(),
                 List.of("proposalType: NEW_CATEGORY or ADD_MERCHANTS",
-                        "merchants: comma-separated codes such as HBO_MAX,APPLE_TV"));
+                        "merchants: comma-separated codes such as HBO_MAX,APPLE_TV"),
+                OperationRetry.forStatus(SemanticStatus.CLARIFICATION_REQUIRED, null));
     }
 
     private CatalogChangeResponse accessDeniedCatalogChange(ToolAccessDeniedException ex) {
         return new CatalogChangeResponse(
                 SemanticStatus.INSUFFICIENT_PERMISSIONS, ex.getMessage(),
                 null, null, null, List.of(), null, List.of(),
-                List.of("Use GOVERNANCE or FULL workflow to propose catalog changes"));
+                List.of("Use GOVERNANCE or FULL workflow to propose catalog changes"),
+                OperationRetry.forStatus(SemanticStatus.INSUFFICIENT_PERMISSIONS, null));
     }
 
     private CatalogChangeResponse rateLimitedCatalogChange(AgentRateLimitExceededException ex) {
         return new CatalogChangeResponse(
                 AgentRateLimitSupport.semanticStatus(ex), ex.getMessage(),
                 null, null, null, List.of(), null, List.of(),
-                List.of("Retry after " + ex.retryAfterSeconds() + " seconds"));
+                List.of("Retry after " + ex.retryAfterSeconds() + " seconds"),
+                OperationRetry.forStatus(AgentRateLimitSupport.semanticStatus(ex), ex.retryAfterSeconds()));
     }
 
     private CatalogChangeResponse budgetExceededCatalogChange(BudgetExceededException ex) {
         return new CatalogChangeResponse(
                 SemanticStatus.BUDGET_EXCEEDED, ex.getMessage(),
                 null, null, null, List.of(), null, List.of(),
-                List.of("Execution budget exceeded for this session"));
+                List.of("Execution budget exceeded for this session"),
+                OperationRetry.forStatus(SemanticStatus.BUDGET_EXCEEDED, null));
     }
 
     private SubscriptionCancellationResponse accessDeniedCancel(
@@ -277,7 +293,8 @@ public class BankingToolOperations {
         return new SubscriptionCancellationResponse(
                 SemanticStatus.INSUFFICIENT_PERMISSIONS, ex.getMessage(),
                 userId, merchant, idempotencyKey, null, null, null,
-                List.of("Use CANCELLATION or FULL workflow for write tools"));
+                List.of("Use CANCELLATION or FULL workflow for write tools"),
+                OperationRetry.forStatus(SemanticStatus.INSUFFICIENT_PERMISSIONS, null));
     }
 
     private SubscriptionCancellationResponse rateLimitedCancel(
@@ -286,7 +303,8 @@ public class BankingToolOperations {
                 AgentRateLimitSupport.semanticStatus(ex), ex.getMessage(),
                 userId, merchant, idempotencyKey, null, null, null,
                 List.of("Wait and retry with the same idempotencyKey",
-                        "Retry after " + ex.retryAfterSeconds() + " seconds"));
+                        "Retry after " + ex.retryAfterSeconds() + " seconds"),
+                OperationRetry.forStatus(AgentRateLimitSupport.semanticStatus(ex), ex.retryAfterSeconds()));
     }
 
     private SubscriptionCancellationResponse budgetExceededCancel(
@@ -294,7 +312,8 @@ public class BankingToolOperations {
         return new SubscriptionCancellationResponse(
                 SemanticStatus.BUDGET_EXCEEDED, ex.getMessage(),
                 userId, merchant, idempotencyKey, null, null, null,
-                List.of("Wait and retry with the same idempotencyKey after budget resets"));
+                List.of("Wait and retry with the same idempotencyKey after budget resets"),
+                OperationRetry.forStatus(SemanticStatus.BUDGET_EXCEEDED, null));
     }
 
     private JobResponse operationalFailure(RuntimeException ex) {
@@ -304,8 +323,13 @@ public class BankingToolOperations {
             case AgentRateLimitExceededException rateLimited -> AgentRateLimitSupport.semanticStatus(rateLimited);
             default -> throw ex;
         };
-        return new JobResponse(status, ex.getMessage(), null, null, null, null,
-                List.of("Respect workflow, rate limits, and execution budgets before retrying"));
+        Integer retryAfter = ex instanceof AgentRateLimitExceededException rateLimited
+                ? rateLimited.retryAfterSeconds()
+                : null;
+        return new JobResponse(status, ex.getMessage(), null, null, retryAfter, null,
+                List.of("Respect workflow, rate limits, and execution budgets before retrying"),
+                com.enterprise.agentapi.agent.ToolCallIds.current(),
+                OperationRetry.forStatus(status, retryAfter));
     }
 
     private static List<String> parseMerchants(String merchantsCsv) {

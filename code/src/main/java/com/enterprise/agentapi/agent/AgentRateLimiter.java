@@ -27,6 +27,13 @@ public class AgentRateLimiter {
         var normalizedTool = normalizeTool(toolName);
         var now = Instant.now();
 
+        if (userId != null && !userId.isBlank()) {
+            checkWindow(sessionTimestamps, userKey(userId), now,
+                    properties.getRateLimit().getUserWindowSeconds(),
+                    properties.getRateLimit().getMaxRequestsPerUserWindow(),
+                    agentSessionId, normalizedTool, userId, channel, RateLimitScope.USER, null);
+        }
+
         checkWindow(sessionTimestamps, sessionKey(agentSessionId), now,
                 properties.getRateLimit().getWindowSeconds(),
                 properties.getRateLimit().getMaxRequestsPerWindow(),
@@ -42,6 +49,9 @@ public class AgentRateLimiter {
 
         detectLoop(agentSessionId, normalizedTool, userId, channel, now);
 
+        if (userId != null && !userId.isBlank()) {
+            recordHit(sessionTimestamps, userKey(userId), now, properties.getRateLimit().getUserWindowSeconds());
+        }
         recordHit(sessionTimestamps, sessionKey(agentSessionId), now,
                 properties.getRateLimit().getWindowSeconds());
         if (toolLimit != null) {
@@ -140,6 +150,10 @@ public class AgentRateLimiter {
             return;
         }
         recordHit(loopTimestamps, toolKey(agentSessionId, toolName), now, loop.getWindowSeconds());
+    }
+
+    private String userKey(String userId) {
+        return "user|" + userId;
     }
 
     private String sessionKey(String agentSessionId) {

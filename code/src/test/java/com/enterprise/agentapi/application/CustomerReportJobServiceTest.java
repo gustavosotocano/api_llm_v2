@@ -6,6 +6,7 @@ import com.enterprise.agentapi.domain.IdentityType;
 import com.enterprise.agentapi.domain.JobStatus;
 import com.enterprise.agentapi.domain.SemanticStatus;
 import com.enterprise.agentapi.enterprise.AgentBoundary;
+import com.enterprise.agentapi.domain.RetryDisposition;
 import com.enterprise.agentapi.infrastructure.AsyncJobStore;
 import com.enterprise.agentapi.infrastructure.CategoryDictionaryRepository;
 import com.enterprise.agentapi.infrastructure.ConfirmationTokenStore;
@@ -42,6 +43,7 @@ class CustomerReportJobServiceTest {
                 transactions);
         service = new CustomerReportJobService(
                 new AsyncJobStore(),
+                new IdempotencyStore(),
                 new CustomerProfileService(new CustomerProfileRepository()),
                 search,
                 cancellation);
@@ -55,9 +57,11 @@ class CustomerReportJobServiceTest {
 
     @Test
     void startPollAndResultUseExplicitJobStates() {
-        var accepted = service.startReport("user-123", "LAST_3_MONTHS");
+        var accepted = service.startReport("user-123", "LAST_3_MONTHS", "report-1");
         assertThat(accepted.status()).isEqualTo(SemanticStatus.ACCEPTED);
         assertThat(accepted.jobId()).startsWith("job-");
+        assertThat(accepted.retry().disposition()).isEqualTo(RetryDisposition.IN_PROGRESS);
+        assertThat(accepted.retry().retryAfterSeconds()).isEqualTo(2);
 
         await().pollInSameThread().atMost(Duration.ofSeconds(3)).untilAsserted(() ->
                 assertThat(service.status(accepted.jobId()).jobStatus()).isEqualTo(JobStatus.COMPLETED));
@@ -71,20 +75,20 @@ class CustomerReportJobServiceTest {
 
     @Test
     void invalidPeriodIsDeterministic() {
-        var response = service.startReport("user-123", "YESTERDAY");
+        var response = service.startReport("user-123", "YESTERDAY", "report-invalid-period");
         assertThat(response.status()).isEqualTo(SemanticStatus.INVALID_PERIOD);
     }
 
     @Test
     void rawDateIsInvalidDateRange() {
-        var response = service.startReport("user-123", "2026-01-01");
+        var response = service.startReport("user-123", "2026-01-01", "report-raw-date");
         assertThat(response.status()).isEqualTo(SemanticStatus.INVALID_DATE_RANGE);
         assertThat(response.jobId()).isNull();
     }
 
     @Test
     void cancelMovesAnActiveJobToCancelledAndTheWorkerDoesNotFinishIt() {
-        var accepted = service.startReport("user-123", "LAST_3_MONTHS");
+        var accepted = service.startReport("user-123", "LAST_3_MONTHS", "report-cancel");
         var cancelled = service.cancel(accepted.jobId());
         assertThat(cancelled.status()).isEqualTo(SemanticStatus.CANCELLED);
         assertThat(cancelled.jobStatus()).isEqualTo(JobStatus.CANCELLED);
@@ -92,5 +96,22 @@ class CustomerReportJobServiceTest {
         await().pollDelay(Duration.ofMillis(1100)).pollInSameThread().atMost(Duration.ofSeconds(3)).untilAsserted(() ->
                 assertThat(service.status(accepted.jobId()).jobStatus()).isEqualTo(JobStatus.CANCELLED));
         assertThat(service.result(accepted.jobId()).status()).isEqualTo(SemanticStatus.CANCELLED);
+        assertThat(cancelled.retry().disposition()).isEqualTo(RetryDisposition.DO_NOT_RETRY);
+    }
+
+    @Test
+    void sameIdempotencyKeyReturnsTheExistingJob() {
+        var first = service.startReport("user-123", "LAST_3_MONTHS", "report-same-key");
+        var second = service.startReport("user-123", "LAST_3_MONTHS", "report-same-key");
+        assertThat(second.jobId()).isEqualTo(first.jobId());
+    }
+
+    @Test
+    void aSecondInFlightReportPointsAtTheActiveJob() {
+        var first = service.startReport("user-123", "LAST_3_MONTHS", "report-inflight-1");
+        var second = service.startReport("user-123", "LAST_3_MONTHS", "report-inflight-2");
+        assertThat(second.status()).isEqualTo(SemanticStatus.OPERATION_IN_PROGRESS);
+        assertThat(second.jobId()).isEqualTo(first.jobId());
+        assertThat(second.retry().disposition()).isEqualTo(RetryDisposition.IN_PROGRESS);
     }
 }

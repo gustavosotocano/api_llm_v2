@@ -16,5 +16,6 @@ public record RecurringPaymentSearchResponse(
         List<Transaction> transactions,
         List<MerchantSummary> merchantSummaries,
         BigDecimal totalAmount,
-        int resultCount
+        int resultCount,
+        OperationRetry retry
 ) {}

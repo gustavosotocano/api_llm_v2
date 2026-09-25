@@ -3,7 +3,7 @@ package com.enterprise.agentapi.enterprise;
 import com.enterprise.agentapi.domain.JobResponse;
 
 public interface CustomerReportApi {
-    JobResponse startReport(String userId, String period);
+    JobResponse startReport(String userId, String period, String idempotencyKey);
 
     JobResponse status(String jobId);
 

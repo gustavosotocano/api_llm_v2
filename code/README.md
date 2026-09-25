@@ -72,7 +72,8 @@ curl -X POST http://localhost:8080/debug/subscriptions/cancel \
 
 # Job asíncrono
 curl -X POST 'http://localhost:8080/debug/jobs/reports?userId=user-123&period=LAST_3_MONTHS' \
-  -H 'X-Agent-Session-Id: agent-demo-001'
+  -H 'X-Agent-Session-Id: agent-demo-001' \
+  -H 'Idempotency-Key: demo-report-1'
 ```
 
 ## Chat (Ollama → MCP bridge)

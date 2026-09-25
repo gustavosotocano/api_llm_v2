@@ -109,6 +109,9 @@ public class AiChatController {
                             CATALOG_CHANGE_PENDING_REVIEW, RATE_LIMITED, AGENT_LOOP_DETECTED, BUDGET_EXCEEDED,
                             OPERATION_IN_PROGRESS, CANCELLED, or INSUFFICIENT_PERMISSIONS, explain it clearly to the user.
                             If a report status is CANCELLED, stop polling. Do not call getJobResult.
+                            Obey the retry field: RETRY_AFTER waits retryAfterSeconds; IN_PROGRESS polls;
+                            DO_NOT_RETRY, ALREADY_COMPLETED, and PERMANENT_FAILURE do not repeat the same call.
+                            startCustomerReport and proposeCatalogChange require an idempotencyKey.
 
                             Never claim that you called a tool unless tool output is actually provided.
                             Never invent tool responses.

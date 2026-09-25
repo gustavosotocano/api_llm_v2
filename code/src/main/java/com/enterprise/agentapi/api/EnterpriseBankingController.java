@@ -74,9 +74,10 @@ public class EnterpriseBankingController {
     @PostMapping("/jobs/reports")
     public JobResponse startReport(@RequestParam String userId,
                                    @RequestParam(defaultValue = "LAST_3_MONTHS") String period,
+                                   @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
                                    @RequestHeader(value = "X-Agent-Session-Id", required = false) String agentSessionId) {
         return withContext(agentSessionId, userId, AgentWorkflow.REPORT,
-                () -> customerReportApi.startReport(userId, period));
+                () -> customerReportApi.startReport(userId, period, idempotencyKey));
     }
 
     @PostMapping("/jobs/{jobId}/cancel")
