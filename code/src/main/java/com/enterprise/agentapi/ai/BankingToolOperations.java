@@ -4,6 +4,7 @@ import com.enterprise.agentapi.agent.AgentRateLimitExceededException;
 import com.enterprise.agentapi.agent.AgentRateLimitSupport;
 import com.enterprise.agentapi.agent.BudgetExceededException;
 import com.enterprise.agentapi.agent.RateLimitScope;
+import com.enterprise.agentapi.agent.RetryBudgetExceededException;
 import com.enterprise.agentapi.agent.ToolAccessDeniedException;
 import com.enterprise.agentapi.enterprise.CatalogChangeApi;
 import com.enterprise.agentapi.enterprise.CustomerReportApi;
@@ -95,6 +96,8 @@ public class BankingToolOperations {
             return rateLimitedSearch(ex);
         } catch (BudgetExceededException ex) {
             return budgetExceededSearch(ex);
+        } catch (RetryBudgetExceededException ex) {
+            return retryBudgetSearch(ex);
         }
     }
 
@@ -120,6 +123,8 @@ public class BankingToolOperations {
             return rateLimitedCancel(userId, merchant, idempotencyKey, ex);
         } catch (BudgetExceededException ex) {
             return budgetExceededCancel(userId, merchant, idempotencyKey, ex);
+        } catch (RetryBudgetExceededException ex) {
+            return retryBudgetCancel(userId, merchant, idempotencyKey, ex);
         }
     }
 
@@ -164,6 +169,8 @@ public class BankingToolOperations {
             return rateLimitedCatalogChange(ex);
         } catch (BudgetExceededException ex) {
             return budgetExceededCatalogChange(ex);
+        } catch (RetryBudgetExceededException ex) {
+            return retryBudgetCatalogChange(ex);
         } catch (IllegalArgumentException ex) {
             return clarificationCatalog(ex.getMessage());
         }
@@ -178,7 +185,7 @@ public class BankingToolOperations {
                         "jobId", response.jobId() == null ? "none" : response.jobId()));
                 return response;
             });
-        } catch (ToolAccessDeniedException | AgentRateLimitExceededException | BudgetExceededException ex) {
+        } catch (ToolAccessDeniedException | AgentRateLimitExceededException | BudgetExceededException | RetryBudgetExceededException ex) {
             return operationalFailure(ex);
         }
     }
@@ -193,7 +200,7 @@ public class BankingToolOperations {
                         "originatingToolCallId", response.toolCallId() == null ? "none" : response.toolCallId()));
                 return response;
             });
-        } catch (ToolAccessDeniedException | AgentRateLimitExceededException | BudgetExceededException ex) {
+        } catch (ToolAccessDeniedException | AgentRateLimitExceededException | BudgetExceededException | RetryBudgetExceededException ex) {
             return operationalFailure(ex);
         }
     }
@@ -208,7 +215,7 @@ public class BankingToolOperations {
                         "originatingToolCallId", response.toolCallId() == null ? "none" : response.toolCallId()));
                 return response;
             });
-        } catch (ToolAccessDeniedException | AgentRateLimitExceededException | BudgetExceededException ex) {
+        } catch (ToolAccessDeniedException | AgentRateLimitExceededException | BudgetExceededException | RetryBudgetExceededException ex) {
             return operationalFailure(ex);
         }
     }
@@ -222,7 +229,7 @@ public class BankingToolOperations {
                         "originatingToolCallId", response.toolCallId() == null ? "none" : response.toolCallId()));
                 return response;
             });
-        } catch (ToolAccessDeniedException | AgentRateLimitExceededException | BudgetExceededException ex) {
+        } catch (ToolAccessDeniedException | AgentRateLimitExceededException | BudgetExceededException | RetryBudgetExceededException ex) {
             return operationalFailure(ex);
         }
     }
@@ -245,6 +252,14 @@ public class BankingToolOperations {
                                 : "Reduce request frequency"),
                 null, null, null, List.of(), List.of(), BigDecimal.ZERO, 0,
                 OperationRetry.forStatus(AgentRateLimitSupport.semanticStatus(ex), ex.retryAfterSeconds()));
+    }
+
+    private RecurringPaymentSearchResponse retryBudgetSearch(RetryBudgetExceededException ex) {
+        return new RecurringPaymentSearchResponse(
+                SemanticStatus.RETRY_BUDGET_EXCEEDED, ex.getMessage(), null, List.of(),
+                List.of("Do not retry this operation. The retry budget is exhausted."),
+                null, null, null, List.of(), List.of(), BigDecimal.ZERO, 0,
+                OperationRetry.forStatus(SemanticStatus.RETRY_BUDGET_EXCEEDED, null));
     }
 
     private RecurringPaymentSearchResponse budgetExceededSearch(BudgetExceededException ex) {
@@ -280,6 +295,14 @@ public class BankingToolOperations {
                 OperationRetry.forStatus(AgentRateLimitSupport.semanticStatus(ex), ex.retryAfterSeconds()));
     }
 
+    private CatalogChangeResponse retryBudgetCatalogChange(RetryBudgetExceededException ex) {
+        return new CatalogChangeResponse(
+                SemanticStatus.RETRY_BUDGET_EXCEEDED, ex.getMessage(),
+                null, null, null, List.of(), null, List.of(),
+                List.of("Do not retry this proposal. The retry budget is exhausted."),
+                OperationRetry.forStatus(SemanticStatus.RETRY_BUDGET_EXCEEDED, null));
+    }
+
     private CatalogChangeResponse budgetExceededCatalogChange(BudgetExceededException ex) {
         return new CatalogChangeResponse(
                 SemanticStatus.BUDGET_EXCEEDED, ex.getMessage(),
@@ -307,6 +330,15 @@ public class BankingToolOperations {
                 OperationRetry.forStatus(AgentRateLimitSupport.semanticStatus(ex), ex.retryAfterSeconds()));
     }
 
+    private SubscriptionCancellationResponse retryBudgetCancel(
+            String userId, String merchant, String idempotencyKey, RetryBudgetExceededException ex) {
+        return new SubscriptionCancellationResponse(
+                SemanticStatus.RETRY_BUDGET_EXCEEDED, ex.getMessage(),
+                userId, merchant, idempotencyKey, null, null, null,
+                List.of("Do not retry this cancellation. The retry budget is exhausted."),
+                OperationRetry.forStatus(SemanticStatus.RETRY_BUDGET_EXCEEDED, null));
+    }
+
     private SubscriptionCancellationResponse budgetExceededCancel(
             String userId, String merchant, String idempotencyKey, BudgetExceededException ex) {
         return new SubscriptionCancellationResponse(
@@ -320,6 +352,7 @@ public class BankingToolOperations {
         var status = switch (ex) {
             case ToolAccessDeniedException ignored -> SemanticStatus.INSUFFICIENT_PERMISSIONS;
             case BudgetExceededException ignored -> SemanticStatus.BUDGET_EXCEEDED;
+            case RetryBudgetExceededException ignored -> SemanticStatus.RETRY_BUDGET_EXCEEDED;
             case AgentRateLimitExceededException rateLimited -> AgentRateLimitSupport.semanticStatus(rateLimited);
             default -> throw ex;
         };

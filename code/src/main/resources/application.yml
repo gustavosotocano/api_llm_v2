@@ -88,6 +88,8 @@ enterprise:
       allowed-reviewers:
         - catalog-admin
         - compliance-officer
+    retry-budget:
+      max-retries: 3
     budget:
       max-units-per-session: 50
       per-tool-cost:

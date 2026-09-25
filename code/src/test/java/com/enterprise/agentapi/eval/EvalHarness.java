@@ -4,6 +4,7 @@ import com.enterprise.agentapi.agent.AgentContext;
 import com.enterprise.agentapi.agent.AgentProperties;
 import com.enterprise.agentapi.agent.AgentRateLimiter;
 import com.enterprise.agentapi.agent.ExecutionBudgetService;
+import com.enterprise.agentapi.agent.RetryBudgetService;
 import com.enterprise.agentapi.agent.ToolAccessPolicy;
 import com.enterprise.agentapi.ai.AgentToolSupport;
 import com.enterprise.agentapi.ai.BankingToolOperations;
@@ -55,7 +56,8 @@ public final class EvalHarness {
                 new ExecutionBudgetService(properties, audit),
                 audit,
                 new ToolAccessPolicy(),
-                List.of(recorder));
+                List.of(recorder),
+                new RetryBudgetService(properties));
         var dictionary = new CategoryDictionaryRepository();
         var transactions = new TransactionRepository();
         var search = new TransactionSearchService(transactions, dictionary, clock);
@@ -75,7 +77,8 @@ public final class EvalHarness {
                         idempotency,
                         new CustomerProfileService(new CustomerProfileRepository()),
                         search,
-                        cancellation),
+                        cancellation,
+                        audit),
                 toolSupport);
         return new EvalHarness(operations, recorder);
     }

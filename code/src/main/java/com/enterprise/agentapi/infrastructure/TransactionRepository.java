@@ -1,5 +1,6 @@
 package com.enterprise.agentapi.infrastructure;
 
+import com.enterprise.agentapi.agent.OperationTrace;
 import com.enterprise.agentapi.domain.Transaction;
 import org.springframework.stereotype.Repository;
 
@@ -23,6 +24,7 @@ public class TransactionRepository {
 
     public List<Transaction> search(String userId, Set<String> normalizedMerchants, String merchant,
                                     LocalDate from, LocalDate to, int limit) {
+        OperationTrace.recordDownstream();
         return transactions.stream()
                 .filter(tx -> tx.userId().equals(userId))
                 .filter(tx -> !tx.transactionDate().isBefore(from) && !tx.transactionDate().isAfter(to))

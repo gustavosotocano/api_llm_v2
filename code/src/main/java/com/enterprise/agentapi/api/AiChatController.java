@@ -4,6 +4,7 @@ import com.enterprise.agentapi.agent.AgentRateLimitExceededException;
 import com.enterprise.agentapi.agent.AgentRateLimiter;
 import com.enterprise.agentapi.agent.BudgetExceededException;
 import com.enterprise.agentapi.agent.ExecutionBudgetService;
+import com.enterprise.agentapi.agent.OperationTrace;
 import com.enterprise.agentapi.domain.AgentWorkflow;
 import com.enterprise.agentapi.domain.IdentityType;
 import com.enterprise.agentapi.observability.AgentAuditService;
@@ -12,6 +13,7 @@ import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
@@ -41,7 +43,8 @@ public class AiChatController {
     }
 
     @PostMapping("/chat")
-    public ChatResponse chat(@RequestBody ChatRequest request) {
+    public ChatResponse chat(@RequestBody ChatRequest request,
+                             @RequestHeader(value = OperationTrace.HEADER, required = false) String enterpriseRequestId) {
         if (request.userId() == null || request.userId().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "userId is required. The backend does not assume an account.");
@@ -49,7 +52,10 @@ public class AiChatController {
         var userId = request.userId().trim();
         var agentSessionId = AgentSessionSupport.resolveSessionId(request.agentSessionId());
         var workflow = ChatWorkflowResolver.resolve(request.workflow(), request.message());
+        OperationTrace.begin(enterpriseRequestId);
         AgentSessionSupport.bind(agentSessionId, userId, "AI_CHAT", IdentityType.USER_DELEGATED, workflow);
+        var requestId = OperationTrace.enterpriseRequestId() == null ? "none" : OperationTrace.enterpriseRequestId();
+        var chatCost = budgetService.costOf("AI_CHAT");
 
         var startedAt = System.nanoTime();
         try {
@@ -57,8 +63,12 @@ public class AiChatController {
             budgetService.consume(agentSessionId, "AI_CHAT", userId, "AI_CHAT");
             auditService.ai(agentSessionId, userId, "AI_CHAT", "USER_PROMPT", Map.of(
                     "message", request.message(),
-                    "toolSource", "MCP_BRIDGE"));
+                    "toolSource", "MCP_BRIDGE",
+                    "enterpriseRequestId", requestId,
+                    "estimatedCostUnits", chatCost,
+                    "retryCount", 0));
             var today = LocalDate.now();
+            OperationTrace.recordDownstream();
             var answer = chatClient.prompt()
                     .system("""
                             You are a banking assistant connected via MCP (Model Context Protocol).
@@ -107,7 +117,9 @@ public class AiChatController {
 
                             If the tool returns UNKNOWN_CATEGORY, CLARIFICATION_REQUIRED, INVALID_DATE_RANGE,
                             CATALOG_CHANGE_PENDING_REVIEW, RATE_LIMITED, AGENT_LOOP_DETECTED, BUDGET_EXCEEDED,
-                            OPERATION_IN_PROGRESS, CANCELLED, or INSUFFICIENT_PERMISSIONS, explain it clearly to the user.
+                            RETRY_BUDGET_EXCEEDED, OPERATION_IN_PROGRESS, CANCELLED, or INSUFFICIENT_PERMISSIONS,
+                            explain it clearly to the user.
+                            If status is RETRY_BUDGET_EXCEEDED, stop. The platform will not run that operation again.
                             If a report status is CANCELLED, stop polling. Do not call getJobResult.
                             Obey the retry field: RETRY_AFTER waits retryAfterSeconds; IN_PROGRESS polls;
                             DO_NOT_RETRY, ALREADY_COMPLETED, and PERMANENT_FAILURE do not repeat the same call.
@@ -124,15 +136,22 @@ public class AiChatController {
                             "userId", userId,
                             "agentSessionId", agentSessionId,
                             "identityType", "USER_DELEGATED",
-                            "workflow", workflow.name()))
+                            "workflow", workflow.name(),
+                            "enterpriseRequestId", requestId))
                     .call()
                     .content();
 
             var durationMs = (System.nanoTime() - startedAt) / 1_000_000;
             auditService.technical(agentSessionId, userId, "AI_CHAT", "CHAT_COMPLETED", Map.of(
                     "durationMs", durationMs,
+                    "executionDurationMs", durationMs,
                     "success", true,
-                    "toolSource", "MCP_BRIDGE"));
+                    "toolSource", "MCP_BRIDGE",
+                    "enterpriseRequestId", requestId,
+                    "estimatedCostUnits", chatCost,
+                    "actualCostUnits", chatCost,
+                    "downstreamCallCount", OperationTrace.downstreamCallCount(),
+                    "retryCount", 0));
             return new ChatResponse(answer, agentSessionId);
         } catch (AgentRateLimitExceededException ex) {
             auditService.technical(agentSessionId, userId, "AI_CHAT", "CHAT_RATE_LIMITED", Map.of(

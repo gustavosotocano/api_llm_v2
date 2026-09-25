@@ -15,6 +15,8 @@ import com.enterprise.agentapi.infrastructure.IdempotencyStore;
 import com.enterprise.agentapi.infrastructure.SubscriptionRegistry;
 import com.enterprise.agentapi.infrastructure.TransactionRepository;
 import com.enterprise.agentapi.agent.AgentProperties;
+import com.enterprise.agentapi.observability.AgentAuditService;
+import tools.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,7 +48,8 @@ class CustomerReportJobServiceTest {
                 new IdempotencyStore(),
                 new CustomerProfileService(new CustomerProfileRepository()),
                 search,
-                cancellation);
+                cancellation,
+                new AgentAuditService(JsonMapper.builder().build()));
         AgentContextHolder.set(new AgentContext("session-1", "user-123", "TEST", IdentityType.USER_DELEGATED));
     }
 
@@ -71,6 +74,9 @@ class CustomerReportJobServiceTest {
         assertThat(result.result()).containsKey("merchantSummaries");
         assertThat(result.result()).containsEntry("composedFrom", AgentBoundary.ENTERPRISE_APIS);
         assertThat(result.result()).containsKey("customer");
+        assertThat(result.result()).containsKey("enterpriseRequestId");
+        assertThat((Integer) result.result().get("downstreamCallCount")).isGreaterThanOrEqualTo(3);
+        assertThat((Long) result.result().get("executionDurationMs")).isGreaterThan(0L);
     }
 
     @Test

@@ -2,6 +2,7 @@ package com.enterprise.agentapi.mcp;
 
 import com.enterprise.agentapi.agent.AgentContext;
 import com.enterprise.agentapi.agent.AgentContextHolder;
+import com.enterprise.agentapi.agent.OperationTrace;
 import com.enterprise.agentapi.agent.ServiceCredentialRegistry;
 import com.enterprise.agentapi.api.AgentSessionSupport;
 import com.enterprise.agentapi.domain.AgentWorkflow;
@@ -27,6 +28,7 @@ public class McpAgentContextBinder {
         }
         var resolvedUserId = firstNonBlank(userId, stringMeta(meta, "userId"));
         var workflow = parseWorkflow(stringMeta(meta, "workflow"));
+        OperationTrace.begin(stringMeta(meta, "enterpriseRequestId"));
         var grant = credentials.validate(stringMeta(meta, "serviceId"), stringMeta(meta, "serviceCredential"));
         if (grant.isPresent()) {
             var service = grant.get();
@@ -48,6 +50,7 @@ public class McpAgentContextBinder {
 
     public void clear() {
         AgentContextHolder.clear();
+        OperationTrace.clear();
     }
 
     private static AgentWorkflow parseWorkflow(String raw) {

@@ -2,6 +2,7 @@ package com.enterprise.agentapi.eval;
 
 import com.enterprise.agentapi.agent.AgentContext;
 import com.enterprise.agentapi.agent.AgentContextHolder;
+import com.enterprise.agentapi.agent.OperationTrace;
 import com.enterprise.agentapi.agent.ServiceCredentialRegistry;
 import com.enterprise.agentapi.domain.AgentWorkflow;
 import com.enterprise.agentapi.domain.CapabilityScope;
@@ -28,6 +29,7 @@ class IdentityEvalTest {
     @AfterEach
     void tearDown() {
         AgentContextHolder.clear();
+        OperationTrace.clear();
     }
 
     @Test

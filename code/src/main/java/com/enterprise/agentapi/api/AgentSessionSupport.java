@@ -2,6 +2,7 @@ package com.enterprise.agentapi.api;
 
 import com.enterprise.agentapi.agent.AgentContext;
 import com.enterprise.agentapi.agent.AgentContextHolder;
+import com.enterprise.agentapi.agent.OperationTrace;
 import com.enterprise.agentapi.domain.AgentWorkflow;
 import com.enterprise.agentapi.domain.IdentityType;
 
@@ -42,5 +43,6 @@ public final class AgentSessionSupport {
 
     public static void clear() {
         AgentContextHolder.clear();
+        OperationTrace.clear();
     }
 }

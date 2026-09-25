@@ -2,7 +2,9 @@ package com.enterprise.agentapi.application;
 
 import com.enterprise.agentapi.agent.AgentContext;
 import com.enterprise.agentapi.agent.AgentContextHolder;
+import com.enterprise.agentapi.agent.OperationTrace;
 import com.enterprise.agentapi.agent.ToolCallIds;
+import com.enterprise.agentapi.observability.AgentAuditService;
 import com.enterprise.agentapi.domain.AsyncJob;
 import com.enterprise.agentapi.domain.JobResponse;
 import com.enterprise.agentapi.domain.JobStatus;
@@ -39,18 +41,21 @@ public class CustomerReportJobService implements CustomerReportApi {
     private final CustomerProfileApi customerProfileApi;
     private final TransactionQueryApi transactionQueryApi;
     private final SubscriptionCommandApi subscriptionCommandApi;
+    private final AgentAuditService auditService;
     private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
 
     public CustomerReportJobService(AsyncJobStore jobStore,
                                     IdempotencyStore idempotencyStore,
                                     CustomerProfileApi customerProfileApi,
                                     TransactionQueryApi transactionQueryApi,
-                                    SubscriptionCommandApi subscriptionCommandApi) {
+                                    SubscriptionCommandApi subscriptionCommandApi,
+                                    AgentAuditService auditService) {
         this.jobStore = jobStore;
         this.idempotencyStore = idempotencyStore;
         this.customerProfileApi = customerProfileApi;
         this.transactionQueryApi = transactionQueryApi;
         this.subscriptionCommandApi = subscriptionCommandApi;
+        this.auditService = auditService;
     }
 
     @Override
@@ -117,7 +122,8 @@ public class CustomerReportJobService implements CustomerReportApi {
         var job = new AsyncJob(jobId, userId, context.agentSessionId(), "CUSTOMER_REPORT",
                 JobStatus.PENDING, now, now, POLL_AFTER_SECONDS, null, null, toolCallId);
         jobStore.save(job);
-        executor.submit(() -> runReport(jobId, userId, periodOption, context));
+        var enterpriseRequestId = OperationTrace.enterpriseRequestId();
+        executor.submit(() -> runReport(jobId, userId, periodOption, context, toolCallId, enterpriseRequestId));
 
         var accepted = respond(SemanticStatus.ACCEPTED,
                 "Report accepted. Poll getJobStatus until COMPLETED, then call getJobResult.",
@@ -235,16 +241,21 @@ public class CustomerReportJobService implements CustomerReportApi {
                 toolCallId, OperationRetry.forStatus(status, delay));
     }
 
-    private void runReport(String jobId, String userId, PeriodOption period, AgentContext context) {
+    private void runReport(String jobId, String userId, PeriodOption period, AgentContext context,
+                           String toolCallId, String enterpriseRequestId) {
         var current = jobStore.find(jobId).orElseThrow();
         var running = current.withStatus(JobStatus.RUNNING, Instant.now(), null, null);
         if (!jobStore.compareAndSet(jobId, Set.of(JobStatus.PENDING), running)) {
             return;
         }
+        OperationTrace.begin(enterpriseRequestId);
         AgentContextHolder.set(context);
+        var startedAt = System.nanoTime();
+        var outcome = "FAILED";
         try {
             Thread.sleep(800);
             if (jobStore.find(jobId).orElseThrow().status() == JobStatus.CANCELLED) {
+                outcome = "CANCELLED";
                 return;
             }
             var profile = customerProfileApi.getProfile(userId);
@@ -267,9 +278,16 @@ public class CustomerReportJobService implements CustomerReportApi {
             result.put("totalAmount", search.totalAmount());
             result.put("merchantSummaries", search.merchantSummaries());
             result.put("cancelledMerchants", subscriptions.cancelledMerchants());
+            var durationMs = (System.nanoTime() - startedAt) / 1_000_000;
+            result.put("enterpriseRequestId", OperationTrace.enterpriseRequestId() == null
+                    ? "none" : OperationTrace.enterpriseRequestId());
+            result.put("downstreamCallCount", OperationTrace.downstreamCallCount());
+            result.put("executionDurationMs", durationMs);
             var completed = jobStore.find(jobId).orElseThrow()
                     .withStatus(JobStatus.COMPLETED, Instant.now(), Map.copyOf(result), null);
-            jobStore.compareAndSet(jobId, Set.of(JobStatus.RUNNING), completed);
+            if (jobStore.compareAndSet(jobId, Set.of(JobStatus.RUNNING), completed)) {
+                outcome = "COMPLETED";
+            }
         } catch (Exception ex) {
             var failed = jobStore.find(jobId).orElse(null);
             if (failed != null) {
@@ -277,6 +295,17 @@ public class CustomerReportJobService implements CustomerReportApi {
                         failed.withStatus(JobStatus.FAILED, Instant.now(), null, ex.getMessage()));
             }
         } finally {
+            var durationMs = (System.nanoTime() - startedAt) / 1_000_000;
+            var attributes = new LinkedHashMap<String, Object>();
+            attributes.put("jobId", jobId);
+            attributes.put("toolCallId", toolCallId == null ? "none" : toolCallId);
+            attributes.put("enterpriseRequestId", OperationTrace.enterpriseRequestId() == null
+                    ? "none" : OperationTrace.enterpriseRequestId());
+            attributes.put("downstreamCallCount", OperationTrace.downstreamCallCount());
+            attributes.put("executionDurationMs", durationMs);
+            attributes.put("jobStatus", outcome);
+            auditService.technical(context.agentSessionId(), userId, context.channel(), "JOB_EXECUTION", attributes);
+            OperationTrace.clear();
             AgentContextHolder.clear();
         }
     }

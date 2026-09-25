@@ -1,5 +1,6 @@
 package com.enterprise.agentapi.infrastructure;
 
+import com.enterprise.agentapi.agent.OperationTrace;
 import org.springframework.stereotype.Repository;
 
 import java.util.Map;
@@ -18,6 +19,7 @@ public class CustomerProfileRepository {
     }
 
     public Optional<CustomerRecord> find(String userId) {
+        OperationTrace.recordDownstream();
         return Optional.ofNullable(records.get(userId));
     }
 }

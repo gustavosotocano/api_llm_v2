@@ -13,6 +13,7 @@ public class AgentProperties {
     private Confirmation confirmation = new Confirmation();
     private Governance governance = new Governance();
     private Budget budget = new Budget();
+    private RetryBudget retryBudget = new RetryBudget();
     private Tools tools = new Tools();
     private Identity identity = new Identity();
 
@@ -46,6 +47,14 @@ public class AgentProperties {
 
     public void setBudget(Budget budget) {
         this.budget = budget;
+    }
+
+    public RetryBudget getRetryBudget() {
+        return retryBudget;
+    }
+
+    public void setRetryBudget(RetryBudget retryBudget) {
+        this.retryBudget = retryBudget;
     }
 
     public Tools getTools() {
@@ -266,6 +275,18 @@ public class AgentProperties {
             costs.put("getJobResult", 1);
             costs.put("AI_CHAT", 4);
             return costs;
+        }
+    }
+
+    public static class RetryBudget {
+        private int maxRetries = 3;
+
+        public int getMaxRetries() {
+            return maxRetries;
+        }
+
+        public void setMaxRetries(int maxRetries) {
+            this.maxRetries = maxRetries;
         }
     }
 

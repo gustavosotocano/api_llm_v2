@@ -38,6 +38,10 @@ public class ExecutionBudgetService {
                 "maxUnits", max));
     }
 
+    public int costOf(String toolName) {
+        return properties.getBudget().costOf(toolName);
+    }
+
     public int usedUnits(String agentSessionId) {
         var counter = unitsBySession.get(agentSessionId);
         return counter == null ? 0 : counter.get();

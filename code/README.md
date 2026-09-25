@@ -22,8 +22,9 @@ User → Agent / LLM runtime → Agent-facing layer (MCP tools)
 | Confirmación humana en writes | `OPERATION_REQUIRES_CONFIRMATION` + `confirmationToken` |
 | Idempotencia | `Idempotency-Key` / `IdempotencyStore` |
 | Catálogo gobernado | `proposeCatalogChange` + REST humana |
-| Observabilidad de 3 capas | logger `AGENT_AUDIT`: TECHNICAL / AI / BUSINESS |
+| Observabilidad de 3 capas | logger `AGENT_AUDIT`: TECHNICAL / AI / BUSINESS, con `enterpriseRequestId`, duración, llamadas downstream y costo |
 | Rate limit ≠ presupuesto | `RATE_LIMITED` / `AGENT_LOOP_DETECTED` vs `BUDGET_EXCEEDED` |
+| Reintentos con tope | `retry` + `retryCount`. `RETRY_BUDGET_EXCEEDED` corta la operación |
 | Jobs asíncronos explícitos | `startCustomerReport` → `getJobStatus` → `getJobResult`; `cancelCustomerReport` pasa a `CANCELLED` |
 | Contexto no confiable + procedencia | resources y tool results con `provenance`; `AgentWorkflow` limita tools |
 | Versionado de contrato de tools | `toolVersion=2.0.0` en auditoría |

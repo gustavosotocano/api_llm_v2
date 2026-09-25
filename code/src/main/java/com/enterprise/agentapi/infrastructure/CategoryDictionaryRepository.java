@@ -1,5 +1,6 @@
 package com.enterprise.agentapi.infrastructure;
 
+import com.enterprise.agentapi.agent.OperationTrace;
 import org.springframework.stereotype.Repository;
 
 import java.util.LinkedHashSet;
@@ -18,23 +19,28 @@ public class CategoryDictionaryRepository {
     }
 
     public boolean exists(String category) {
+        OperationTrace.recordDownstream();
         return category != null && categoryToMerchants.containsKey(normalize(category));
     }
 
     public Set<String> merchantsFor(String category) {
+        OperationTrace.recordDownstream();
         return Set.copyOf(categoryToMerchants.getOrDefault(normalize(category), Set.of()));
     }
 
     public List<String> knownCategories() {
+        OperationTrace.recordDownstream();
         return categoryToMerchants.keySet().stream().sorted().toList();
     }
 
     public synchronized void applyCategory(String category, Set<String> merchants) {
+        OperationTrace.recordDownstream();
         var code = normalize(category);
         categoryToMerchants.put(code, new LinkedHashSet<>(normalizeMerchants(merchants)));
     }
 
     public synchronized void addMerchants(String category, Set<String> merchants) {
+        OperationTrace.recordDownstream();
         var code = normalize(category);
         if (!exists(code)) {
             throw new IllegalArgumentException("Category does not exist: " + code);
