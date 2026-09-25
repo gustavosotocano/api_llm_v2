@@ -8,6 +8,7 @@ import com.enterprise.agentapi.domain.RecurringPaymentSearchRequest;
 import com.enterprise.agentapi.domain.RecurringPaymentSearchResponse;
 import com.enterprise.agentapi.domain.SemanticStatus;
 import com.enterprise.agentapi.domain.Transaction;
+import com.enterprise.agentapi.enterprise.TransactionQueryApi;
 import com.enterprise.agentapi.infrastructure.CategoryDictionaryRepository;
 import com.enterprise.agentapi.infrastructure.TransactionRepository;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-public class TransactionSearchService {
+public class TransactionSearchService implements TransactionQueryApi {
     private static final int DEFAULT_LIMIT = 100;
     private static final int MAX_LIMIT = 100;
 
@@ -38,11 +39,12 @@ public class TransactionSearchService {
         this.clock = clock;
     }
 
+    @Override
     public RecurringPaymentSearchResponse searchRecurringPayments(RecurringPaymentSearchRequest request) {
         var userId = normalizeUserId(request.userId());
         var denied = IdentityGuard.authorizeUserResource(userId);
         if (denied != null) {
-            return response(denied, "Delegated identity cannot access another user's resources.",
+            return response(denied, "Current identity cannot access another user's resources.",
                     request.category(), request.period(), null, null,
                     List.of("Use the authenticated userId"), List.of());
         }

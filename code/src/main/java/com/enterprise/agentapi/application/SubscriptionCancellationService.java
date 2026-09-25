@@ -3,6 +3,8 @@ package com.enterprise.agentapi.application;
 import com.enterprise.agentapi.domain.SemanticStatus;
 import com.enterprise.agentapi.domain.SubscriptionCancellationRequest;
 import com.enterprise.agentapi.domain.SubscriptionCancellationResponse;
+import com.enterprise.agentapi.domain.SubscriptionSnapshot;
+import com.enterprise.agentapi.enterprise.SubscriptionCommandApi;
 import com.enterprise.agentapi.infrastructure.ConfirmationTokenStore;
 import com.enterprise.agentapi.infrastructure.IdempotencyStore;
 import com.enterprise.agentapi.infrastructure.SubscriptionRegistry;
@@ -15,7 +17,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Service
-public class SubscriptionCancellationService {
+public class SubscriptionCancellationService implements SubscriptionCommandApi {
     private final IdempotencyStore idempotencyStore;
     private final ConfirmationTokenStore confirmationTokenStore;
     private final SubscriptionRegistry subscriptionRegistry;
@@ -31,11 +33,24 @@ public class SubscriptionCancellationService {
         this.transactionRepository = transactionRepository;
     }
 
+    @Override
+    public SubscriptionSnapshot snapshot(String userId) {
+        var normalized = normalizeUserId(userId);
+        var denied = IdentityGuard.authorizeUserResource(normalized);
+        if (denied != null) {
+            return new SubscriptionSnapshot(denied, "Current identity cannot read another user's subscriptions.",
+                    normalized, List.of(), List.of("Use the authenticated userId"));
+        }
+        return new SubscriptionSnapshot(SemanticStatus.SUCCESS, "Subscription snapshot.",
+                normalized, subscriptionRegistry.cancelledMerchants(normalized), List.of());
+    }
+
+    @Override
     public SubscriptionCancellationResponse cancel(SubscriptionCancellationRequest request) {
         var userId = normalizeUserId(request.userId());
         var denied = IdentityGuard.authorizeUserResource(userId);
         if (denied != null) {
-            return response(denied, "Delegated identity cannot cancel another user's subscription.",
+            return response(denied, "Current identity cannot cancel another user's subscription.",
                     userId, request.merchant(), request.idempotencyKey(), null, null, null,
                     List.of("Use the authenticated userId"));
         }

@@ -2,6 +2,7 @@ package com.enterprise.agentapi.api;
 
 import com.enterprise.agentapi.agent.AgentContext;
 import com.enterprise.agentapi.agent.AgentContextHolder;
+import com.enterprise.agentapi.domain.AgentWorkflow;
 import com.enterprise.agentapi.domain.IdentityType;
 
 import java.util.UUID;
@@ -21,7 +22,22 @@ public final class AgentSessionSupport {
     }
 
     public static void bind(String agentSessionId, String userId, String channel, IdentityType identityType) {
-        AgentContextHolder.set(new AgentContext(agentSessionId, userId, channel, identityType));
+        bind(agentSessionId, userId, channel, identityType, AgentWorkflow.READ);
+    }
+
+    public static void bind(
+            String agentSessionId,
+            String userId,
+            String channel,
+            IdentityType identityType,
+            AgentWorkflow workflow) {
+        AgentContextHolder.set(new AgentContext(
+                agentSessionId, userId, channel, identityType,
+                workflow == null ? AgentWorkflow.READ : workflow));
+    }
+
+    public static void bind(AgentContext context) {
+        AgentContextHolder.set(context);
     }
 
     public static void clear() {

@@ -4,10 +4,11 @@ import com.enterprise.agentapi.agent.AgentRateLimitExceededException;
 import com.enterprise.agentapi.agent.AgentRateLimitSupport;
 import com.enterprise.agentapi.agent.BudgetExceededException;
 import com.enterprise.agentapi.agent.RateLimitScope;
-import com.enterprise.agentapi.application.CatalogGovernanceService;
-import com.enterprise.agentapi.application.CustomerReportJobService;
-import com.enterprise.agentapi.application.SubscriptionCancellationService;
-import com.enterprise.agentapi.application.TransactionSearchService;
+import com.enterprise.agentapi.agent.ToolAccessDeniedException;
+import com.enterprise.agentapi.enterprise.CatalogChangeApi;
+import com.enterprise.agentapi.enterprise.CustomerReportApi;
+import com.enterprise.agentapi.enterprise.SubscriptionCommandApi;
+import com.enterprise.agentapi.enterprise.TransactionQueryApi;
 import com.enterprise.agentapi.domain.CatalogChangeResponse;
 import com.enterprise.agentapi.domain.CatalogProposalType;
 import com.enterprise.agentapi.domain.JobResponse;
@@ -31,16 +32,16 @@ import java.util.Map;
 public class BankingToolOperations {
     private static final Logger log = LoggerFactory.getLogger(BankingToolOperations.class);
 
-    private final TransactionSearchService searchService;
-    private final SubscriptionCancellationService cancellationService;
-    private final CatalogGovernanceService catalogGovernanceService;
-    private final CustomerReportJobService reportJobService;
+    private final TransactionQueryApi searchService;
+    private final SubscriptionCommandApi cancellationService;
+    private final CatalogChangeApi catalogGovernanceService;
+    private final CustomerReportApi reportJobService;
     private final AgentToolSupport agentToolSupport;
 
-    public BankingToolOperations(TransactionSearchService searchService,
-                                 SubscriptionCancellationService cancellationService,
-                                 CatalogGovernanceService catalogGovernanceService,
-                                 CustomerReportJobService reportJobService,
+    public BankingToolOperations(TransactionQueryApi searchService,
+                                 SubscriptionCommandApi cancellationService,
+                                 CatalogChangeApi catalogGovernanceService,
+                                 CustomerReportApi reportJobService,
                                  AgentToolSupport agentToolSupport) {
         this.searchService = searchService;
         this.cancellationService = cancellationService;
@@ -78,6 +79,8 @@ public class BankingToolOperations {
                         "resultCount", response.resultCount()));
                 return response;
             });
+        } catch (ToolAccessDeniedException ex) {
+            return accessDeniedSearch(ex);
         } catch (AgentRateLimitExceededException ex) {
             return rateLimitedSearch(ex);
         } catch (BudgetExceededException ex) {
@@ -100,6 +103,8 @@ public class BankingToolOperations {
                         "idempotencyKey", response.idempotencyKey() == null ? "none" : response.idempotencyKey()));
                 return response;
             });
+        } catch (ToolAccessDeniedException ex) {
+            return accessDeniedCancel(userId, merchant, idempotencyKey, ex);
         } catch (AgentRateLimitExceededException ex) {
             return rateLimitedCancel(userId, merchant, idempotencyKey, ex);
         } catch (BudgetExceededException ex) {
@@ -127,6 +132,8 @@ public class BankingToolOperations {
                         "categoryCode", response.categoryCode() == null ? "none" : response.categoryCode()));
                 return response;
             });
+        } catch (ToolAccessDeniedException ex) {
+            return accessDeniedCatalogChange(ex);
         } catch (AgentRateLimitExceededException ex) {
             return rateLimitedCatalogChange(ex);
         } catch (BudgetExceededException ex) {
@@ -143,7 +150,7 @@ public class BankingToolOperations {
                         "jobId", response.jobId() == null ? "none" : response.jobId()));
                 return response;
             });
-        } catch (AgentRateLimitExceededException | BudgetExceededException ex) {
+        } catch (ToolAccessDeniedException | AgentRateLimitExceededException | BudgetExceededException ex) {
             return operationalFailure(ex);
         }
     }
@@ -157,7 +164,7 @@ public class BankingToolOperations {
                         "jobStatus", response.jobStatus() == null ? "unknown" : response.jobStatus().name()));
                 return response;
             });
-        } catch (AgentRateLimitExceededException | BudgetExceededException ex) {
+        } catch (ToolAccessDeniedException | AgentRateLimitExceededException | BudgetExceededException ex) {
             return operationalFailure(ex);
         }
     }
@@ -169,9 +176,16 @@ public class BankingToolOperations {
                 agentToolSupport.logBusinessAction("GET_JOB_RESULT", response.status(), Map.of("jobId", jobId));
                 return response;
             });
-        } catch (AgentRateLimitExceededException | BudgetExceededException ex) {
+        } catch (ToolAccessDeniedException | AgentRateLimitExceededException | BudgetExceededException ex) {
             return operationalFailure(ex);
         }
+    }
+
+    private RecurringPaymentSearchResponse accessDeniedSearch(ToolAccessDeniedException ex) {
+        return new RecurringPaymentSearchResponse(
+                SemanticStatus.INSUFFICIENT_PERMISSIONS, ex.getMessage(), null, List.of(),
+                List.of("Use a workflow that includes this tool, or elevate to FULL"),
+                null, null, null, List.of(), List.of(), BigDecimal.ZERO, 0);
     }
 
     private RecurringPaymentSearchResponse rateLimitedSearch(AgentRateLimitExceededException ex) {
@@ -192,6 +206,13 @@ public class BankingToolOperations {
                 null, null, null, List.of(), List.of(), BigDecimal.ZERO, 0);
     }
 
+    private CatalogChangeResponse accessDeniedCatalogChange(ToolAccessDeniedException ex) {
+        return new CatalogChangeResponse(
+                SemanticStatus.INSUFFICIENT_PERMISSIONS, ex.getMessage(),
+                null, null, null, List.of(), null, List.of(),
+                List.of("Use GOVERNANCE or FULL workflow to propose catalog changes"));
+    }
+
     private CatalogChangeResponse rateLimitedCatalogChange(AgentRateLimitExceededException ex) {
         return new CatalogChangeResponse(
                 AgentRateLimitSupport.semanticStatus(ex), ex.getMessage(),
@@ -204,6 +225,14 @@ public class BankingToolOperations {
                 SemanticStatus.BUDGET_EXCEEDED, ex.getMessage(),
                 null, null, null, List.of(), null, List.of(),
                 List.of("Execution budget exceeded for this session"));
+    }
+
+    private SubscriptionCancellationResponse accessDeniedCancel(
+            String userId, String merchant, String idempotencyKey, ToolAccessDeniedException ex) {
+        return new SubscriptionCancellationResponse(
+                SemanticStatus.INSUFFICIENT_PERMISSIONS, ex.getMessage(),
+                userId, merchant, idempotencyKey, null, null, null,
+                List.of("Use CANCELLATION or FULL workflow for write tools"));
     }
 
     private SubscriptionCancellationResponse rateLimitedCancel(
@@ -224,11 +253,14 @@ public class BankingToolOperations {
     }
 
     private JobResponse operationalFailure(RuntimeException ex) {
-        var status = ex instanceof BudgetExceededException
-                ? SemanticStatus.BUDGET_EXCEEDED
-                : AgentRateLimitSupport.semanticStatus((AgentRateLimitExceededException) ex);
+        var status = switch (ex) {
+            case ToolAccessDeniedException ignored -> SemanticStatus.INSUFFICIENT_PERMISSIONS;
+            case BudgetExceededException ignored -> SemanticStatus.BUDGET_EXCEEDED;
+            case AgentRateLimitExceededException rateLimited -> AgentRateLimitSupport.semanticStatus(rateLimited);
+            default -> throw ex;
+        };
         return new JobResponse(status, ex.getMessage(), null, null, null, null,
-                List.of("Respect rate limits and execution budgets before retrying"));
+                List.of("Respect workflow, rate limits, and execution budgets before retrying"));
     }
 
     private static List<String> parseMerchants(String merchantsCsv) {

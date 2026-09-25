@@ -3,7 +3,9 @@ package com.enterprise.agentapi.api;
 import com.enterprise.agentapi.agent.AgentRateLimitExceededException;
 import com.enterprise.agentapi.agent.AgentRateLimiter;
 import com.enterprise.agentapi.application.CatalogGovernanceService;
+import com.enterprise.agentapi.domain.AgentWorkflow;
 import com.enterprise.agentapi.domain.CatalogChangeProposal;
+import com.enterprise.agentapi.domain.IdentityType;
 import com.enterprise.agentapi.domain.CatalogChangeResponse;
 import com.enterprise.agentapi.domain.CatalogProposalStatus;
 import com.enterprise.agentapi.observability.AgentAuditService;
@@ -66,7 +68,7 @@ public class GovernanceController {
                                          String agentSessionId, String action,
                                          java.util.function.Supplier<CatalogChangeResponse> operation) {
         var sessionId = AgentSessionSupport.resolveSessionId(agentSessionId);
-        AgentSessionSupport.bind(sessionId, reviewerId, "GOVERNANCE_API");
+        AgentSessionSupport.bind(sessionId, reviewerId, "GOVERNANCE_API", IdentityType.USER_DELEGATED, AgentWorkflow.GOVERNANCE);
         try {
             rateLimiter.checkAllowed(sessionId, action, reviewerId, "GOVERNANCE_API");
             var startedAt = System.nanoTime();

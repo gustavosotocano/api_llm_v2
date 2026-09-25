@@ -16,16 +16,16 @@ User → Agent / LLM runtime → Agent-facing layer (MCP tools)
 
 | Patrón V2 | Dónde |
 |---|---|
-| Capa agent-facing + MCP | `POST /api/mcp` — 6 tools, 7 resources, 4 prompts |
+| Capa agent-facing + MCP | `POST /api/mcp` — 6 tools sobre APIs de empresa en `/api/banking` |
 | Contratos tipados y estados semánticos | `SemanticStatus` |
-| Identidad delegada + autorización | `IdentityGuard` — un usuario no ve recursos de otro |
+| Identidad delegada + autorización | `IdentityGuard` + scopes; `SERVICE` no es cuenta privilegiada |
 | Confirmación humana en writes | `OPERATION_REQUIRES_CONFIRMATION` + `confirmationToken` |
 | Idempotencia | `Idempotency-Key` / `IdempotencyStore` |
 | Catálogo gobernado | `proposeCatalogChange` + REST humana |
 | Observabilidad de 3 capas | logger `AGENT_AUDIT`: TECHNICAL / AI / BUSINESS |
 | Rate limit ≠ presupuesto | `RATE_LIMITED` / `AGENT_LOOP_DETECTED` vs `BUDGET_EXCEEDED` |
 | Jobs asíncronos explícitos | `startCustomerReport` → `getJobStatus` → `getJobResult` |
-| Contexto no confiable + procedencia | resources MCP con `provenance.trust_level` |
+| Contexto no confiable + procedencia | resources y tool results con `provenance`; `AgentWorkflow` limita tools |
 | Versionado de contrato de tools | `toolVersion=2.0.0` en auditoría |
 
 ## Requisitos
@@ -107,10 +107,58 @@ curl -X POST "http://localhost:8080/debug/governance/catalog/proposals/<proposal
 User → /ai/chat → Ollama → MCP Client → /api/mcp → BankingMcpTools
                                               ↘
 User/Cursor → /api/mcp (directo) ──────────────┘
+                        ↓ agent-facing (schemas, rate, budget, audit)
+              BankingToolOperations
+                        ↓ enterprise / domain APIs
+              /api/banking  (Customer • Transactions • Subscriptions)
                         ↓
-              BankingToolOperations → Services → Stores (in-memory)
+              Business systems (in-memory stores)
 ```
 
-## Lección clave
+MCP no guarda memoria de agente, estado de workflow, retries ni orquestación. `startCustomerReport` compone tres APIs de dominio detrás de un solo tool.
+
+## Boundary (capítulo 2)
+
+Las APIs de empresa siguen siendo domain-oriented. El agente no las reemplaza:
+
+```bash
+curl http://localhost:8080/api/banking/customers/user-123 \
+  -H 'X-Agent-Session-Id: agent-demo-001'
+```
+
+## Identidad (capítulo 4)
+
+La identidad sobrevive el límite del agente. Acceder a un tool no implica acceder a todos los recursos detrás de ese tool.
+
+- `USER_DELEGATED` solo ve al usuario autenticado. Confirmar una cancelación no autoriza a otro usuario.
+- `SERVICE` no es una cuenta privilegiada implícita. Necesita credencial de corta vida (`POST /debug/identity/service-credentials`) y un `onBehalfOf` explícito.
+- El meta MCP `identityType=SERVICE` no eleva privilegios. Solo un `serviceCredential` emitido por el backend.
+- Los scopes (`transactions:read`, `subscriptions:write`, …) son independientes del workflow: `FULL` sin `subscriptions:write` no cancela.
+
+## Contexto (capítulo 5)
+
+El backend, no el texto recuperado, es el perímetro de seguridad:
+
+- Cada resource MCP y cada tool result va envuelto en `provenance` (`source_type`, `trust_level`, `may_grant_permission=false`).
+- Los resultados de tools son `untrusted_content` por defecto. El `status` semántico es el único campo de plataforma que el agente debe usar para decidir el siguiente paso.
+- El workflow por defecto es `READ`. `CANCELLATION`, `GOVERNANCE`, `REPORT` y `FULL` se pasan explícitamente (chat usa `FULL`; MCP sin meta queda en `READ`).
+- Un memo de merchant o un resource no puede saltarse `confirmationToken` ni mutar el catálogo.
+
+## Evals (capítulo 6)
+
+`mvn test` corre tres capas alineadas al documento:
+
+| Capa | Dónde | Qué comprueba |
+|---|---|---|
+| API / dominio | `application/*Test`, `agent/*Test` | reglas, auth, idempotencia, jobs, presupuesto |
+| Contrato de tools | `eval/ToolContractEvalTest`, `eval/ToolDescriptionContractTest` | schemas MCP, hints, estados semánticos, frases del contrato conductual |
+| Boundary / capas | `eval/BoundaryEvalTest` | MCP sin memoria/retry, APIs de empresa independientes, un tool orquesta tres APIs |
+| Identidad / scopes | `eval/IdentityEvalTest` | SERVICE sin grant, onBehalfOf, scopes, credencial expirada, no auto-elevación |
+| Contexto / blast radius | `eval/ContextTrustEvalTest` | procedencia untrusted, workflow READ no escribe, texto no salta confirmación |
+| Evals de agente | `eval/AgentEvalSuiteTest` + `GoldenScenarios` | 9 escenarios dorados: tool correcto, args, sin fechas inventadas, confirmación antes del write, errores semánticos, outcome final |
+
+Las propiedades evaluadas son las del documento: wording puede cambiar; el comportamiento no.
+
+Para añadir un escenario, agrega un `GoldenScenario` en `GoldenScenarios` con el `userMessage` (prompt de eval) y los turns que un agente bien comportado debe ejecutar.
 
 Si un valor se puede calcular de forma determinista en el backend, no se lo pidas al LLM. Envía intención semántica (`LAST_3_MONTHS`) y deja que el backend posea fechas, catálogos, presupuestos y efectos de lado.

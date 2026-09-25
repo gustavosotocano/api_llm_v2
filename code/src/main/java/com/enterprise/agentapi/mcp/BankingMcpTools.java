@@ -11,10 +11,14 @@ import org.springframework.stereotype.Component;
 public class BankingMcpTools {
     private final BankingToolOperations operations;
     private final McpJsonEncoder jsonEncoder;
+    private final McpAgentContextBinder contextBinder;
 
-    public BankingMcpTools(BankingToolOperations operations, McpJsonEncoder jsonEncoder) {
+    public BankingMcpTools(BankingToolOperations operations,
+                           McpJsonEncoder jsonEncoder,
+                           McpAgentContextBinder contextBinder) {
         this.operations = operations;
         this.jsonEncoder = jsonEncoder;
+        this.contextBinder = contextBinder;
     }
 
     @McpTool(
@@ -35,7 +39,7 @@ public class BankingMcpTools {
             @McpToolParam(description = "Max transactions to return", required = false) Integer limit,
             @McpToolParam(description = "Agent session id for rate limit, budget, and audit", required = false) String agentSessionId,
             McpMeta meta) {
-        return invoke(agentSessionId, userId, meta,
+        return invoke("searchRecurringPayments", agentSessionId, userId, meta,
                 () -> operations.searchRecurringPayments(userId, category, merchant, period, limit));
     }
 
@@ -56,7 +60,7 @@ public class BankingMcpTools {
             @McpToolParam(description = "Confirmation token from OPERATION_REQUIRES_CONFIRMATION", required = false) String confirmationToken,
             @McpToolParam(description = "Agent session id for rate limit, budget, and audit", required = false) String agentSessionId,
             McpMeta meta) {
-        return invoke(agentSessionId, userId, meta,
+        return invoke("cancelRecurringSubscription", agentSessionId, userId, meta,
                 () -> operations.cancelRecurringSubscription(userId, merchant, idempotencyKey, confirmationToken));
     }
 
@@ -79,7 +83,7 @@ public class BankingMcpTools {
             @McpToolParam(description = "User id") String userId,
             @McpToolParam(description = "Agent session id", required = false) String agentSessionId,
             McpMeta meta) {
-        return invoke(agentSessionId, userId, meta,
+        return invoke("proposeCatalogChange", agentSessionId, userId, meta,
                 () -> operations.proposeCatalogChange(proposalType, categoryCode, merchants, reason, userId, agentSessionId));
     }
 
@@ -88,6 +92,8 @@ public class BankingMcpTools {
             description = """
                     Start a long-running customer report. Do not wait for the result.
                     Returns ACCEPTED with jobId. Then poll getJobStatus and finally getJobResult.
+                    The tool composes customer, transaction, and subscription domain APIs.
+                    Do not call those domain APIs separately.
                     """,
             generateOutputSchema = false,
             annotations = @McpTool.McpAnnotations(readOnlyHint = false, destructiveHint = false, idempotentHint = false))
@@ -96,7 +102,8 @@ public class BankingMcpTools {
             @McpToolParam(description = "Period enum, default LAST_3_MONTHS", required = false) String period,
             @McpToolParam(description = "Agent session id", required = false) String agentSessionId,
             McpMeta meta) {
-        return invoke(agentSessionId, userId, meta, () -> operations.startCustomerReport(userId, period));
+        return invoke("startCustomerReport", agentSessionId, userId, meta,
+                () -> operations.startCustomerReport(userId, period));
     }
 
     @McpTool(
@@ -109,7 +116,7 @@ public class BankingMcpTools {
             @McpToolParam(description = "Authenticated user id", required = false) String userId,
             @McpToolParam(description = "Agent session id", required = false) String agentSessionId,
             McpMeta meta) {
-        return invoke(agentSessionId, userId, meta, () -> operations.getJobStatus(jobId));
+        return invoke("getJobStatus", agentSessionId, userId, meta, () -> operations.getJobStatus(jobId));
     }
 
     @McpTool(
@@ -122,20 +129,23 @@ public class BankingMcpTools {
             @McpToolParam(description = "Authenticated user id", required = false) String userId,
             @McpToolParam(description = "Agent session id", required = false) String agentSessionId,
             McpMeta meta) {
-        return invoke(agentSessionId, userId, meta, () -> operations.getJobResult(jobId));
+        return invoke("getJobResult", agentSessionId, userId, meta, () -> operations.getJobResult(jobId));
     }
 
-    private CallToolResult invoke(String agentSessionId, String userId, McpMeta meta, java.util.function.Supplier<Object> action) {
-        McpAgentContextBinder.bind(agentSessionId, userId, meta);
+    private CallToolResult invoke(
+            String toolName, String agentSessionId, String userId, McpMeta meta, java.util.function.Supplier<Object> action) {
+        contextBinder.bind(agentSessionId, userId, meta);
         try {
-            return CallToolResult.builder().addTextContent(jsonEncoder.encode(action.get())).build();
+            return CallToolResult.builder()
+                    .addTextContent(jsonEncoder.encode(ContextProvenance.toolResult(toolName, action.get())))
+                    .build();
         } catch (Exception ex) {
             return CallToolResult.builder()
                     .isError(true)
                     .addTextContent(ex.getClass().getSimpleName() + ": " + ex.getMessage())
                     .build();
         } finally {
-            McpAgentContextBinder.clear();
+            contextBinder.clear();
         }
     }
 }

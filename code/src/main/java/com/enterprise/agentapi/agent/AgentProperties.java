@@ -1,5 +1,6 @@
 package com.enterprise.agentapi.agent;
 
+import com.enterprise.agentapi.domain.AgentWorkflow;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.LinkedHashMap;
@@ -12,6 +13,8 @@ public class AgentProperties {
     private Confirmation confirmation = new Confirmation();
     private Governance governance = new Governance();
     private Budget budget = new Budget();
+    private Tools tools = new Tools();
+    private Identity identity = new Identity();
 
     public RateLimit getRateLimit() {
         return rateLimit;
@@ -43,6 +46,22 @@ public class AgentProperties {
 
     public void setBudget(Budget budget) {
         this.budget = budget;
+    }
+
+    public Tools getTools() {
+        return tools;
+    }
+
+    public void setTools(Tools tools) {
+        this.tools = tools;
+    }
+
+    public Identity getIdentity() {
+        return identity;
+    }
+
+    public void setIdentity(Identity identity) {
+        this.identity = identity;
     }
 
     public static class RateLimit {
@@ -227,6 +246,40 @@ public class AgentProperties {
             costs.put("getJobResult", 1);
             costs.put("AI_CHAT", 4);
             return costs;
+        }
+    }
+
+    public static class Tools {
+        private AgentWorkflow defaultWorkflow = AgentWorkflow.READ;
+
+        public AgentWorkflow getDefaultWorkflow() {
+            return defaultWorkflow;
+        }
+
+        public void setDefaultWorkflow(AgentWorkflow defaultWorkflow) {
+            this.defaultWorkflow = defaultWorkflow == null ? AgentWorkflow.READ : defaultWorkflow;
+        }
+    }
+
+    public static class Identity {
+        private int credentialTtlSeconds = 300;
+        private List<String> defaultUserScopes = List.of(
+                "transactions:read", "subscriptions:write", "catalog:propose", "jobs:run");
+
+        public int getCredentialTtlSeconds() {
+            return credentialTtlSeconds;
+        }
+
+        public void setCredentialTtlSeconds(int credentialTtlSeconds) {
+            this.credentialTtlSeconds = credentialTtlSeconds;
+        }
+
+        public List<String> getDefaultUserScopes() {
+            return defaultUserScopes;
+        }
+
+        public void setDefaultUserScopes(List<String> defaultUserScopes) {
+            this.defaultUserScopes = defaultUserScopes;
         }
     }
 }

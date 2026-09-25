@@ -18,6 +18,9 @@ public class AgentChatToolContextToMcpMetaConverter implements ToolContextToMcpM
         copyIfPresent(toolContext.getContext(), meta, "userId");
         copyIfPresent(toolContext.getContext(), meta, "agentSessionId");
         copyIfPresent(toolContext.getContext(), meta, "identityType");
+        copyIfPresent(toolContext.getContext(), meta, "workflow");
+        copyIfPresent(toolContext.getContext(), meta, "serviceId");
+        copyIfPresent(toolContext.getContext(), meta, "serviceCredential");
         meta.put("channel", "AI_CHAT");
         return meta;
     }

@@ -6,6 +6,7 @@ import com.enterprise.agentapi.domain.CatalogChangeResponse;
 import com.enterprise.agentapi.domain.CatalogProposalStatus;
 import com.enterprise.agentapi.domain.CatalogProposalType;
 import com.enterprise.agentapi.domain.SemanticStatus;
+import com.enterprise.agentapi.enterprise.CatalogChangeApi;
 import com.enterprise.agentapi.infrastructure.CatalogProposalStore;
 import com.enterprise.agentapi.infrastructure.CategoryDictionaryRepository;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-public class CatalogGovernanceService {
+public class CatalogGovernanceService implements CatalogChangeApi {
     private final CategoryDictionaryRepository dictionaryRepository;
     private final CatalogProposalStore proposalStore;
     private final AgentProperties agentProperties;
@@ -31,6 +32,7 @@ public class CatalogGovernanceService {
         this.agentProperties = agentProperties;
     }
 
+    @Override
     public CatalogChangeResponse propose(CatalogProposalType proposalType,
                                          String categoryCode,
                                          List<String> merchants,

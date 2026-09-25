@@ -59,6 +59,18 @@ class SubscriptionCancellationServiceTest {
     }
 
     @Test
+    void confirmationDoesNotAuthorizeAnotherUser() {
+        var pending = service.cancel(new SubscriptionCancellationRequest(
+                "user-123", "NETFLIX", "cancel-netflix-auth", null));
+        AgentContextHolder.set(new AgentContext("session-2", "user-456", "TEST", IdentityType.USER_DELEGATED));
+
+        var stolen = service.cancel(new SubscriptionCancellationRequest(
+                "user-123", "NETFLIX", "cancel-netflix-auth", pending.confirmationToken()));
+
+        assertThat(stolen.status()).isEqualTo(SemanticStatus.INSUFFICIENT_PERMISSIONS);
+    }
+
+    @Test
     void sameKeyDifferentMerchantIsConflict() {
         service.cancel(new SubscriptionCancellationRequest("user-123", "NETFLIX", "shared-key", null));
         var conflict = service.cancel(new SubscriptionCancellationRequest("user-123", "SPOTIFY", "shared-key", null));

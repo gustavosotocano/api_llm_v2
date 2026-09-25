@@ -2,35 +2,62 @@ package com.enterprise.agentapi.mcp;
 
 import com.enterprise.agentapi.agent.AgentContext;
 import com.enterprise.agentapi.agent.AgentContextHolder;
+import com.enterprise.agentapi.agent.ServiceCredentialRegistry;
 import com.enterprise.agentapi.api.AgentSessionSupport;
+import com.enterprise.agentapi.domain.AgentWorkflow;
 import com.enterprise.agentapi.domain.IdentityType;
 import org.springframework.ai.mcp.annotation.McpMeta;
+import org.springframework.stereotype.Component;
 
-public final class McpAgentContextBinder {
-    private McpAgentContextBinder() {}
+/**
+ * Client meta cannot self-elevate to SERVICE. That requires a short-lived issued credential.
+ */
+@Component
+public class McpAgentContextBinder {
+    private final ServiceCredentialRegistry credentials;
 
-    public static void bind(String agentSessionId, String userId, McpMeta meta) {
+    public McpAgentContextBinder(ServiceCredentialRegistry credentials) {
+        this.credentials = credentials;
+    }
+
+    public void bind(String agentSessionId, String userId, McpMeta meta) {
         var session = firstNonBlank(agentSessionId, stringMeta(meta, "agentSessionId"));
         if (session == null) {
             session = AgentSessionSupport.resolveSessionId(null);
         }
         var resolvedUserId = firstNonBlank(userId, stringMeta(meta, "userId"), "user-123");
-        var identity = parseIdentity(stringMeta(meta, "identityType"));
-        AgentContextHolder.set(new AgentContext(session, resolvedUserId, "MCP", identity));
+        var workflow = parseWorkflow(stringMeta(meta, "workflow"));
+        var grant = credentials.validate(stringMeta(meta, "serviceId"), stringMeta(meta, "serviceCredential"));
+        if (grant.isPresent()) {
+            var service = grant.get();
+            var onBehalfOf = service.allows(resolvedUserId) ? resolvedUserId : null;
+            AgentContextHolder.set(new AgentContext(
+                    session,
+                    service.serviceId(),
+                    "MCP",
+                    IdentityType.SERVICE,
+                    workflow,
+                    service.scopes(),
+                    onBehalfOf,
+                    service.expiresAt()));
+            return;
+        }
+        AgentContextHolder.set(new AgentContext(
+                session, resolvedUserId, "MCP", IdentityType.USER_DELEGATED, workflow));
     }
 
-    public static void clear() {
+    public void clear() {
         AgentContextHolder.clear();
     }
 
-    private static IdentityType parseIdentity(String raw) {
+    private static AgentWorkflow parseWorkflow(String raw) {
         if (raw == null) {
-            return IdentityType.USER_DELEGATED;
+            return AgentWorkflow.READ;
         }
         try {
-            return IdentityType.valueOf(raw.trim().toUpperCase());
+            return AgentWorkflow.valueOf(raw.trim().toUpperCase());
         } catch (IllegalArgumentException ex) {
-            return IdentityType.USER_DELEGATED;
+            return AgentWorkflow.READ;
         }
     }
 

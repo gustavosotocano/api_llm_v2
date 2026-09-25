@@ -5,6 +5,8 @@ import com.enterprise.agentapi.agent.AgentRateLimiter;
 import com.enterprise.agentapi.application.CustomerReportJobService;
 import com.enterprise.agentapi.application.SubscriptionCancellationService;
 import com.enterprise.agentapi.application.TransactionSearchService;
+import com.enterprise.agentapi.domain.AgentWorkflow;
+import com.enterprise.agentapi.domain.IdentityType;
 import com.enterprise.agentapi.domain.JobResponse;
 import com.enterprise.agentapi.domain.RecurringPaymentSearchRequest;
 import com.enterprise.agentapi.domain.RecurringPaymentSearchResponse;
@@ -50,7 +52,7 @@ public class DebugController {
                                                           @RequestHeader(value = "X-Agent-Session-Id", required = false) String agentSessionId) {
         var sessionId = AgentSessionSupport.resolveSessionId(agentSessionId);
         var userId = request.userId() == null || request.userId().isBlank() ? "user-123" : request.userId();
-        AgentSessionSupport.bind(sessionId, userId, "DEBUG_API");
+        AgentSessionSupport.bind(sessionId, userId, "DEBUG_API", IdentityType.USER_DELEGATED, AgentWorkflow.READ);
         try {
             rateLimiter.checkAllowed(sessionId, "searchRecurringPayments", userId, "DEBUG_API");
             var startedAt = System.nanoTime();
@@ -77,7 +79,7 @@ public class DebugController {
             @RequestHeader(value = "X-Confirmation-Token", required = false) String confirmationTokenHeader) {
         var sessionId = AgentSessionSupport.resolveSessionId(agentSessionId);
         var userId = request.userId() == null || request.userId().isBlank() ? "user-123" : request.userId();
-        AgentSessionSupport.bind(sessionId, userId, "DEBUG_API");
+        AgentSessionSupport.bind(sessionId, userId, "DEBUG_API", IdentityType.USER_DELEGATED, AgentWorkflow.CANCELLATION);
 
         var idempotencyKey = idempotencyKeyHeader != null && !idempotencyKeyHeader.isBlank()
                 ? idempotencyKeyHeader
@@ -117,7 +119,7 @@ public class DebugController {
                                    @RequestParam(defaultValue = "LAST_3_MONTHS") String period,
                                    @RequestHeader(value = "X-Agent-Session-Id", required = false) String agentSessionId) {
         var sessionId = AgentSessionSupport.resolveSessionId(agentSessionId);
-        AgentSessionSupport.bind(sessionId, userId, "DEBUG_API");
+        AgentSessionSupport.bind(sessionId, userId, "DEBUG_API", IdentityType.USER_DELEGATED, AgentWorkflow.REPORT);
         try {
             return reportJobService.startReport(userId, period);
         } finally {
@@ -130,7 +132,7 @@ public class DebugController {
                                  @RequestParam(defaultValue = "user-123") String userId,
                                  @RequestHeader(value = "X-Agent-Session-Id", required = false) String agentSessionId) {
         var sessionId = AgentSessionSupport.resolveSessionId(agentSessionId);
-        AgentSessionSupport.bind(sessionId, userId, "DEBUG_API");
+        AgentSessionSupport.bind(sessionId, userId, "DEBUG_API", IdentityType.USER_DELEGATED, AgentWorkflow.REPORT);
         try {
             return reportJobService.status(jobId);
         } finally {
@@ -143,7 +145,7 @@ public class DebugController {
                                  @RequestParam(defaultValue = "user-123") String userId,
                                  @RequestHeader(value = "X-Agent-Session-Id", required = false) String agentSessionId) {
         var sessionId = AgentSessionSupport.resolveSessionId(agentSessionId);
-        AgentSessionSupport.bind(sessionId, userId, "DEBUG_API");
+        AgentSessionSupport.bind(sessionId, userId, "DEBUG_API", IdentityType.USER_DELEGATED, AgentWorkflow.REPORT);
         try {
             return reportJobService.result(jobId);
         } finally {

@@ -5,9 +5,15 @@ import com.enterprise.agentapi.agent.AgentContextHolder;
 import com.enterprise.agentapi.domain.IdentityType;
 import com.enterprise.agentapi.domain.JobStatus;
 import com.enterprise.agentapi.domain.SemanticStatus;
+import com.enterprise.agentapi.enterprise.AgentBoundary;
 import com.enterprise.agentapi.infrastructure.AsyncJobStore;
 import com.enterprise.agentapi.infrastructure.CategoryDictionaryRepository;
+import com.enterprise.agentapi.infrastructure.ConfirmationTokenStore;
+import com.enterprise.agentapi.infrastructure.CustomerProfileRepository;
+import com.enterprise.agentapi.infrastructure.IdempotencyStore;
+import com.enterprise.agentapi.infrastructure.SubscriptionRegistry;
 import com.enterprise.agentapi.infrastructure.TransactionRepository;
+import com.enterprise.agentapi.agent.AgentProperties;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,8 +33,18 @@ class CustomerReportJobServiceTest {
     @BeforeEach
     void setUp() {
         var clock = Clock.fixed(LocalDate.of(2026, 5, 20).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
-        var search = new TransactionSearchService(new TransactionRepository(), new CategoryDictionaryRepository(), clock);
-        service = new CustomerReportJobService(new AsyncJobStore(), search);
+        var transactions = new TransactionRepository();
+        var search = new TransactionSearchService(transactions, new CategoryDictionaryRepository(), clock);
+        var cancellation = new SubscriptionCancellationService(
+                new IdempotencyStore(),
+                new ConfirmationTokenStore(new AgentProperties()),
+                new SubscriptionRegistry(),
+                transactions);
+        service = new CustomerReportJobService(
+                new AsyncJobStore(),
+                new CustomerProfileService(new CustomerProfileRepository()),
+                search,
+                cancellation);
         AgentContextHolder.set(new AgentContext("session-1", "user-123", "TEST", IdentityType.USER_DELEGATED));
     }
 
@@ -49,6 +65,8 @@ class CustomerReportJobServiceTest {
         var result = service.result(accepted.jobId());
         assertThat(result.status()).isEqualTo(SemanticStatus.SUCCESS);
         assertThat(result.result()).containsKey("merchantSummaries");
+        assertThat(result.result()).containsEntry("composedFrom", AgentBoundary.ENTERPRISE_APIS);
+        assertThat(result.result()).containsKey("customer");
     }
 
     @Test

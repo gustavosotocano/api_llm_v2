@@ -2,6 +2,8 @@ package com.enterprise.agentapi.application;
 
 import com.enterprise.agentapi.agent.AgentContext;
 import com.enterprise.agentapi.agent.AgentContextHolder;
+import com.enterprise.agentapi.domain.AgentWorkflow;
+import com.enterprise.agentapi.domain.CapabilityScope;
 import com.enterprise.agentapi.domain.IdentityType;
 import com.enterprise.agentapi.domain.PeriodOption;
 import com.enterprise.agentapi.domain.RecurringPaymentSearchRequest;
@@ -15,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -61,6 +64,27 @@ class TransactionSearchServiceTest {
                 "user-456", "STREAMING", null, PeriodOption.LAST_3_MONTHS, 100));
 
         assertThat(response.status()).isEqualTo(SemanticStatus.INSUFFICIENT_PERMISSIONS);
+    }
+
+    @Test
+    void serviceIdentityIsNotAGodAccount() {
+        AgentContextHolder.set(new AgentContext("session-svc", "reconciliation-bot", "TEST", IdentityType.SERVICE));
+        var response = service.searchRecurringPayments(new RecurringPaymentSearchRequest(
+                "user-123", "STREAMING", null, PeriodOption.LAST_3_MONTHS, 100));
+        assertThat(response.status()).isEqualTo(SemanticStatus.INSUFFICIENT_PERMISSIONS);
+    }
+
+    @Test
+    void serviceMayReadOnlyTheGrantedUser() {
+        AgentContextHolder.set(new AgentContext(
+                "session-svc", "reconciliation-bot", "TEST", IdentityType.SERVICE, AgentWorkflow.READ,
+                Set.of(CapabilityScope.TRANSACTIONS_READ), "user-123", null));
+        var allowed = service.searchRecurringPayments(new RecurringPaymentSearchRequest(
+                "user-123", "STREAMING", null, PeriodOption.LAST_3_MONTHS, 100));
+        var denied = service.searchRecurringPayments(new RecurringPaymentSearchRequest(
+                "user-456", "STREAMING", null, PeriodOption.LAST_3_MONTHS, 100));
+        assertThat(allowed.status()).isEqualTo(SemanticStatus.SUCCESS);
+        assertThat(denied.status()).isEqualTo(SemanticStatus.INSUFFICIENT_PERMISSIONS);
     }
 
     @Test
