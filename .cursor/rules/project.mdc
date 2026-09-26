@@ -1,0 +1,30 @@
+---
+description: Layout, run commands, and hexagonal boundary for the Enterprise Agent API
+alwaysApply: true
+---
+
+# Enterprise Agent API
+
+Spring Boot 4.1.1, Spring AI 2.0, Java 21. The Maven module is `code/`.
+
+## Run
+
+- From `code/`: `mvn test` and `mvn spring-boot:run` (port 8080).
+- Ollama is required only for `POST /ai/chat`.
+
+## Boundary
+
+The agent interprets intent. The backend remains the business authority. MCP does not own memory, workflow state, retries, or orchestration.
+
+- Inbound adapters: `mcp` and `api` (`BankingMcpTools`, `EnterpriseBankingController`, `AiChatController`).
+- Inbound ports: `enterprise` (`*Api`), implemented in `application`.
+- Outbound ports: `application.port`. Adapters: `infrastructure.InMemory*`.
+- `domain` does not import `application`, `infrastructure`, `mcp`, or `api`.
+
+`BankingToolOperations` calls the inbound ports. `AgentToolSupport` applies access, retry budget, rate limit, execution budget, and audit before the call.
+
+## Do not
+
+- Add a second system of record or a parallel tool version.
+- Let application services depend on `infrastructure` classes. Depend on `application.port`.
+- Move business rules into `/ai/chat`. Domain APIs stay callable without MCP.
