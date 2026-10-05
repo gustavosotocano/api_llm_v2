@@ -10,6 +10,8 @@ public record SubscriptionCancellationResponse(
         String merchant,
         String idempotencyKey,
         String confirmationToken,
+        String preview,
+        Integer expiresInSeconds,
         String operationId,
         Instant executedAt,
         List<String> suggestions,

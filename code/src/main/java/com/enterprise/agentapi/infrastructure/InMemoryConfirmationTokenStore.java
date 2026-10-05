@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,28 +21,29 @@ public class InMemoryConfirmationTokenStore implements ConfirmationTokenStore {
     }
 
     @Override
-    public String issue(String userId, String merchant, String idempotencyKey) {
+    public IssuedConfirmation issue(String userId, String merchant, String idempotencyKey, String argumentHash) {
         purgeExpired();
         var token = "confirm-" + UUID.randomUUID();
         var expiresAt = Instant.now().plusSeconds(properties.getConfirmation().getTokenTtlSeconds());
-        pendingByToken.put(token, new PendingConfirmation(userId, merchant, idempotencyKey, expiresAt));
-        return token;
+        pendingByToken.put(token, new PendingConfirmation(userId, merchant, idempotencyKey, argumentHash, expiresAt));
+        return new IssuedConfirmation(token, expiresAt);
     }
 
     @Override
-    public Optional<PendingConfirmation> consume(String token, String userId, String merchant, String idempotencyKey) {
+    public Optional<PendingConfirmation> consume(
+            String token, String userId, String merchant, String idempotencyKey, String argumentHash) {
         purgeExpired();
-        var pending = pendingByToken.remove(token);
+        var pending = pendingByToken.get(token);
         if (pending == null) {
             return Optional.empty();
         }
-        if (!pending.userId().equals(userId)
-                || !pending.merchant().equalsIgnoreCase(merchant)
-                || !pending.idempotencyKey().equals(idempotencyKey)
-                || pending.expiresAt().isBefore(Instant.now())) {
-            return Optional.empty();
-        }
-        return Optional.of(pending);
+        var matches = pending.userId().equals(userId)
+                && pending.merchant().equalsIgnoreCase(merchant)
+                && pending.idempotencyKey().equals(idempotencyKey)
+                && Objects.equals(pending.argumentHash(), argumentHash)
+                && !pending.expiresAt().isBefore(Instant.now());
+        pendingByToken.remove(token);
+        return matches ? Optional.of(pending) : Optional.empty();
     }
 
     private void purgeExpired() {

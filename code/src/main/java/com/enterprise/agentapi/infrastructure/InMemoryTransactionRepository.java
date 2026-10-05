@@ -1,6 +1,7 @@
 package com.enterprise.agentapi.infrastructure;
 
 import com.enterprise.agentapi.agent.OperationTrace;
+import com.enterprise.agentapi.agent.ResourceScope;
 import com.enterprise.agentapi.application.port.TransactionRepository;
 import com.enterprise.agentapi.domain.Transaction;
 import org.springframework.stereotype.Repository;
@@ -25,14 +26,16 @@ public class InMemoryTransactionRepository implements TransactionRepository {
 
     @Override
     public List<Transaction> search(String userId, Set<String> normalizedMerchants, String merchant,
-                                    LocalDate from, LocalDate to, int limit) {
+                                    LocalDate from, LocalDate to) {
         OperationTrace.recordDownstream();
+        if (!ResourceScope.visibleToCaller(userId)) {
+            return List.of();
+        }
         return transactions.stream()
                 .filter(tx -> tx.userId().equals(userId))
                 .filter(tx -> !tx.transactionDate().isBefore(from) && !tx.transactionDate().isAfter(to))
                 .filter(tx -> merchant == null || merchant.isBlank() || tx.normalizedMerchant().equalsIgnoreCase(merchant))
                 .filter(tx -> normalizedMerchants.isEmpty() || normalizedMerchants.contains(tx.normalizedMerchant()))
-                .limit(limit)
                 .toList();
     }
 }

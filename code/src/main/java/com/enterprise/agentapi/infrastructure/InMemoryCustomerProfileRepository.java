@@ -1,6 +1,7 @@
 package com.enterprise.agentapi.infrastructure;
 
 import com.enterprise.agentapi.agent.OperationTrace;
+import com.enterprise.agentapi.agent.ResourceScope;
 import com.enterprise.agentapi.application.port.CustomerProfileRepository;
 import org.springframework.stereotype.Repository;
 
@@ -20,6 +21,9 @@ public class InMemoryCustomerProfileRepository implements CustomerProfileReposit
     @Override
     public Optional<CustomerRecord> find(String userId) {
         OperationTrace.recordDownstream();
+        if (!ResourceScope.visibleToCaller(userId)) {
+            return Optional.empty();
+        }
         return Optional.ofNullable(records.get(userId));
     }
 }

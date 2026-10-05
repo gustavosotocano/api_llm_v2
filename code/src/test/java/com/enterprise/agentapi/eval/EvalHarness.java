@@ -113,11 +113,11 @@ public final class EvalHarness {
                     str(args, "category"),
                     str(args, "merchant"),
                     str(args, "period"),
-                    integer(args, "limit"));
+                    integer(args, "limit"),
+                    str(args, "cursor"));
             case "cancelRecurringSubscription" -> operations.cancelRecurringSubscription(
                     str(args, "userId"),
                     str(args, "merchant"),
-                    str(args, "idempotencyKey"),
                     str(args, "confirmationToken"));
             case "proposeCatalogChange" -> operations.proposeCatalogChange(
                     str(args, "proposalType"),
@@ -125,12 +125,10 @@ public final class EvalHarness {
                     str(args, "merchants"),
                     str(args, "reason"),
                     str(args, "userId"),
-                    str(args, "agentSessionId"),
-                    str(args, "idempotencyKey"));
+                    str(args, "agentSessionId"));
             case "startCustomerReport" -> operations.startCustomerReport(
                     str(args, "userId"),
-                    str(args, "period"),
-                    str(args, "idempotencyKey"));
+                    str(args, "period"));
             case "cancelCustomerReport" -> operations.cancelCustomerReport(str(args, "jobId"));
             case "getJobStatus" -> operations.getJobStatus(str(args, "jobId"));
             case "getJobResult" -> operations.getJobResult(str(args, "jobId"));

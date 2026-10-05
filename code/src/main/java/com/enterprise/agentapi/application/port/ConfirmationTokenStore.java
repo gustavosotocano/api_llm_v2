@@ -4,9 +4,17 @@ import java.time.Instant;
 import java.util.Optional;
 
 public interface ConfirmationTokenStore {
-    record PendingConfirmation(String userId, String merchant, String idempotencyKey, Instant expiresAt) {}
+    record PendingConfirmation(
+            String userId,
+            String merchant,
+            String idempotencyKey,
+            String argumentHash,
+            Instant expiresAt) {}
 
-    String issue(String userId, String merchant, String idempotencyKey);
+    record IssuedConfirmation(String token, Instant expiresAt) {}
 
-    Optional<PendingConfirmation> consume(String token, String userId, String merchant, String idempotencyKey);
+    IssuedConfirmation issue(String userId, String merchant, String idempotencyKey, String argumentHash);
+
+    Optional<PendingConfirmation> consume(
+            String token, String userId, String merchant, String idempotencyKey, String argumentHash);
 }

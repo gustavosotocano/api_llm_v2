@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +48,7 @@ public class TransactionSearchService implements TransactionQueryApi {
         if (denied != null) {
             return response(denied, denialMessage(userId),
                     request.category(), request.period(), null, null,
-                    List.of("Pass the authenticated userId"), List.of());
+                    List.of("Pass the authenticated userId"), List.of(), false, 0, null);
         }
 
         var category = normalizeCategory(request.category());
@@ -57,7 +58,8 @@ public class TransactionSearchService implements TransactionQueryApi {
         if (category == null && isBlank(request.merchant())) {
             return response(SemanticStatus.CLARIFICATION_REQUIRED,
                     "Please provide a category or merchant.", category, period, null, null,
-                    List.of("Use category STREAMING", "Use a specific merchant like NETFLIX"), List.of());
+                    List.of("Use category STREAMING", "Use a specific merchant like NETFLIX"),
+                    List.of(), false, 0, null);
         }
 
         if (category != null && !dictionaryRepository.exists(category)) {
@@ -67,37 +69,87 @@ public class TransactionSearchService implements TransactionQueryApi {
                     List.of(
                             "Known categories: " + String.join(", ", dictionaryRepository.knownCategories()),
                             "Call proposeCatalogChange (NEW_CATEGORY) and wait for human approval"),
-                    List.of());
+                    List.of(), false, 0, null);
         }
 
         var range = resolveDateRange(period);
         Set<String> merchants = category == null ? Set.of() : dictionaryRepository.merchantsFor(category);
-        var transactions = transactionRepository.search(userId, merchants, request.merchant(),
-                        range.fromDate(), range.toDate(), limit)
+        var matches = transactionRepository.search(userId, merchants, request.merchant(), range.fromDate(), range.toDate())
                 .stream()
-                .sorted(Comparator.comparing(Transaction::normalizedMerchant).thenComparing(Transaction::transactionDate))
+                .sorted(Comparator.comparing(Transaction::normalizedMerchant)
+                        .thenComparing(Transaction::transactionDate)
+                        .thenComparing(Transaction::id))
                 .toList();
-
-        if (transactions.isEmpty()) {
-            return response(SemanticStatus.NO_RESULTS_FOUND,
-                    "No transactions found for the requested criteria.",
-                    category, period, range.fromDate(), range.toDate(), List.of(), transactions);
+        var page = page(matches, request.cursor(), limit);
+        if (page.unknownCursor()) {
+            return response(SemanticStatus.CLARIFICATION_REQUIRED,
+                    "Unknown cursor. Omit cursor to start from the beginning.",
+                    category, period, range.fromDate(), range.toDate(),
+                    List.of("Call searchRecurringPayments again without cursor"),
+                    List.of(), false, matches.size(), null);
         }
 
+        if (page.transactions().isEmpty()) {
+            return response(SemanticStatus.NO_RESULTS_FOUND,
+                    "No transactions found for the requested criteria.",
+                    category, period, range.fromDate(), range.toDate(), List.of(),
+                    page.transactions(), false, page.totalMatching(), null);
+        }
+
+        var suggestions = new ArrayList<String>();
+        if (page.truncated()) {
+            suggestions.add("More matches exist (" + page.totalMatching()
+                    + " total). Call again with cursor " + page.nextCursor() + ".");
+        }
         return response(SemanticStatus.SUCCESS,
                 "Transactions found. Use merchantSummaries as the source of truth.",
-                category, period, range.fromDate(), range.toDate(), List.of(), transactions);
+                category, period, range.fromDate(), range.toDate(), suggestions,
+                page.transactions(), page.truncated(), page.totalMatching(), page.nextCursor());
+    }
+
+    private MatchPage page(List<Transaction> matches, String cursor, int limit) {
+        var start = 0;
+        if (!isBlank(cursor)) {
+            var index = -1;
+            for (var i = 0; i < matches.size(); i++) {
+                if (matches.get(i).id().equals(cursor)) {
+                    index = i;
+                    break;
+                }
+            }
+            if (index < 0) {
+                return MatchPage.unknown(matches.size());
+            }
+            start = index + 1;
+        }
+        var end = Math.min(start + limit, matches.size());
+        var slice = List.copyOf(matches.subList(start, end));
+        var truncated = end < matches.size();
+        var nextCursor = truncated && !slice.isEmpty() ? slice.getLast().id() : null;
+        return new MatchPage(slice, matches.size(), truncated, nextCursor, false);
     }
 
     private RecurringPaymentSearchResponse response(SemanticStatus status, String message, String category,
                                                     PeriodOption period, LocalDate fromDate, LocalDate toDate,
-                                                    List<String> suggestions, List<Transaction> transactions) {
+                                                    List<String> suggestions, List<Transaction> transactions,
+                                                    boolean truncated, int totalMatching, String nextCursor) {
         var summaries = buildSummaries(transactions);
         var total = transactions.stream().map(Transaction::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
         return new RecurringPaymentSearchResponse(
                 status, message, category, dictionaryRepository.knownCategories(), suggestions,
                 period, fromDate, toDate, transactions, summaries, total, transactions.size(),
-                OperationRetry.forStatus(status, null));
+                truncated, totalMatching, nextCursor, OperationRetry.forStatus(status, null));
+    }
+
+    private record MatchPage(
+            List<Transaction> transactions,
+            int totalMatching,
+            boolean truncated,
+            String nextCursor,
+            boolean unknownCursor) {
+        private static MatchPage unknown(int totalMatching) {
+            return new MatchPage(List.of(), totalMatching, false, null, true);
+        }
     }
 
     private List<MerchantSummary> buildSummaries(List<Transaction> transactions) {

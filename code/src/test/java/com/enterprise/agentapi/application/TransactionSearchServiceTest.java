@@ -47,6 +47,45 @@ class TransactionSearchServiceTest {
         assertThat(response.merchantSummaries()).extracting(summary -> summary.normalizedMerchant())
                 .containsExactly("NETFLIX", "SPOTIFY");
         assertThat(response.resultCount()).isEqualTo(6);
+        assertThat(response.totalMatching()).isEqualTo(6);
+        assertThat(response.truncated()).isFalse();
+        assertThat(response.nextCursor()).isNull();
+    }
+
+    @Test
+    void searchPageReportsTruncationAndContinuesFromCursor() {
+        var first = service.searchRecurringPayments(new RecurringPaymentSearchRequest(
+                "user-123", "STREAMING", null, PeriodOption.LAST_3_MONTHS, 2));
+
+        assertThat(first.status()).isEqualTo(SemanticStatus.SUCCESS);
+        assertThat(first.resultCount()).isEqualTo(2);
+        assertThat(first.totalMatching()).isEqualTo(6);
+        assertThat(first.truncated()).isTrue();
+        assertThat(first.nextCursor()).isNotBlank();
+
+        var second = service.searchRecurringPayments(new RecurringPaymentSearchRequest(
+                "user-123", "STREAMING", null, PeriodOption.LAST_3_MONTHS, 2, first.nextCursor()));
+        assertThat(second.resultCount()).isEqualTo(2);
+        assertThat(second.totalMatching()).isEqualTo(6);
+        assertThat(second.transactions()).extracting(tx -> tx.id())
+                .doesNotContainAnyElementsOf(first.transactions().stream().map(tx -> tx.id()).toList());
+    }
+
+    @Test
+    void repositoryHidesRowsThatAreNotTheAuthenticatedUser() {
+        var repository = new InMemoryTransactionRepository();
+        var foreign = repository.search(
+                "user-456", java.util.Set.of(), null, LocalDate.of(2020, 1, 1), LocalDate.of(2030, 1, 1));
+        assertThat(foreign).isEmpty();
+
+        var profiles = new com.enterprise.agentapi.infrastructure.InMemoryCustomerProfileRepository();
+        assertThat(profiles.find("user-456")).isEmpty();
+        assertThat(profiles.find("user-123")).isPresent();
+
+        var registry = new com.enterprise.agentapi.infrastructure.InMemorySubscriptionRegistry();
+        registry.cancel("user-456", "NETFLIX");
+        AgentContextHolder.clear();
+        assertThat(registry.isCancelled("user-456", "NETFLIX")).isFalse();
     }
 
     @Test

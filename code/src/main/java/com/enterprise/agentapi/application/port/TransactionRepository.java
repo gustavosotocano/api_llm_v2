@@ -8,5 +8,5 @@ import java.util.Set;
 
 public interface TransactionRepository {
     List<Transaction> search(String userId, Set<String> normalizedMerchants, String merchant,
-                             LocalDate from, LocalDate to, int limit);
+                             LocalDate from, LocalDate to);
 }

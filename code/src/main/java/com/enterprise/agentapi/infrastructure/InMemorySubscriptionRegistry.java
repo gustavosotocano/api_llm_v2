@@ -1,6 +1,7 @@
 package com.enterprise.agentapi.infrastructure;
 
 import com.enterprise.agentapi.agent.OperationTrace;
+import com.enterprise.agentapi.agent.ResourceScope;
 import com.enterprise.agentapi.application.port.SubscriptionRegistry;
 import org.springframework.stereotype.Repository;
 
@@ -15,18 +16,27 @@ public class InMemorySubscriptionRegistry implements SubscriptionRegistry {
     @Override
     public void cancel(String userId, String merchant) {
         OperationTrace.recordDownstream();
+        if (!ResourceScope.visibleToCaller(userId)) {
+            return;
+        }
         cancelled.add(key(userId, merchant));
     }
 
     @Override
     public boolean isCancelled(String userId, String merchant) {
         OperationTrace.recordDownstream();
+        if (!ResourceScope.visibleToCaller(userId)) {
+            return false;
+        }
         return cancelled.contains(key(userId, merchant));
     }
 
     @Override
     public List<String> cancelledMerchants(String userId) {
         OperationTrace.recordDownstream();
+        if (!ResourceScope.visibleToCaller(userId)) {
+            return List.of();
+        }
         var prefix = userId + "::";
         return cancelled.stream()
                 .filter(entry -> entry.startsWith(prefix))

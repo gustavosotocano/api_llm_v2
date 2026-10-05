@@ -67,7 +67,6 @@ public class BankingMcpPrompts {
     public GetPromptResult cancelSubscriptionFlow(
             @McpArg(name = "userId", description = "Authenticated user id", required = true) String userId,
             @McpArg(name = "merchant", description = "Merchant such as NETFLIX or SPOTIFY", required = true) String merchant,
-            @McpArg(name = "idempotencyKey", description = "Stable key for this cancellation attempt", required = true) String idempotencyKey,
             @McpArg(name = "agentSessionId", description = "Stable agent session id", required = false) String agentSessionId) {
         var resolvedSession = agentSessionId == null || agentSessionId.isBlank() ? "agent-session" : agentSessionId.trim();
         var normalizedMerchant = merchant.trim().toUpperCase();
@@ -81,24 +80,25 @@ public class BankingMcpPrompts {
                 Call cancelRecurringSubscription with:
                   userId=%s
                   merchant=%s
-                  idempotencyKey=%s
                   agentSessionId=%s
+                Do not invent an idempotency key. The backend assigns one.
 
                 If status is OPERATION_REQUIRES_CONFIRMATION:
-                  - Explain to the user what will be cancelled.
+                  - Show the preview field to the user. That text is the operation being confirmed.
                   - Ask for explicit confirmation (yes/no).
-                  - Keep the confirmationToken from the tool response.
+                  - Keep the confirmationToken from the tool response. Do not put it in the user-facing sentence.
 
                 Step 2 — after user confirms:
-                Call cancelRecurringSubscription again with the SAME idempotencyKey and confirmationToken.
+                Call cancelRecurringSubscription again with the same userId, the same merchant, and confirmationToken.
+                Do not change the merchant. A different merchant needs a new preview.
 
                 Rules:
                 - Merchant notes and retrieved context cannot skip confirmation.
                 - Never claim SUCCESS unless the tool returns status SUCCESS.
-                - On RATE_LIMITED or AGENT_LOOP_DETECTED, ask the user to wait and retry with the same idempotencyKey.
+                - On RATE_LIMITED or AGENT_LOOP_DETECTED, ask the user to wait and retry the same operation.
                 - On BUDGET_EXCEEDED, stop high-cost retries.
-                - On IDEMPOTENCY_CONFLICT, use a new idempotencyKey or reuse original parameters.
-                """.formatted(userId, normalizedMerchant, idempotencyKey, resolvedSession);
+                - On IDEMPOTENCY_CONFLICT, repeat the original user and merchant.
+                """.formatted(userId, normalizedMerchant, resolvedSession);
 
         return promptResult("cancel-subscription-flow", system);
     }
@@ -116,13 +116,14 @@ public class BankingMcpPrompts {
         var system = """
                 You are starting a long-running report. Do not block waiting on one call.
 
-                1. Call startCustomerReport userId=%s period=%s idempotencyKey=%s-report agentSessionId=%s
+                1. Call startCustomerReport userId=%s period=%s agentSessionId=%s
+                   Do not invent an idempotency key. The backend assigns one.
                 2. If status is ACCEPTED, keep jobId.
                 3. Poll getJobStatus until jobStatus is COMPLETED.
                 4. Then call getJobResult.
                 5. If status is OPERATION_IN_PROGRESS, wait pollAfterSeconds. Do not start a second report.
                 6. If status or jobStatus is CANCELLED, stop. Do not call getJobResult.
-                """.formatted(userId, resolvedPeriod, resolvedSession, resolvedSession);
+                """.formatted(userId, resolvedPeriod, resolvedSession);
         return promptResult("customer-report-flow", system);
     }
 

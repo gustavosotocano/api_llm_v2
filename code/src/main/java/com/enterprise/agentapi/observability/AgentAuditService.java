@@ -9,13 +9,23 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @Service
 public class AgentAuditService {
     private static final Logger AUDIT_LOG = LoggerFactory.getLogger("AGENT_AUDIT");
+    private static final Set<String> SECRET_FIELDS = Set.of(
+            "confirmationtoken",
+            "servicecredential",
+            "credential",
+            "accesstoken",
+            "subjecttoken",
+            "actortoken",
+            "approvaltoken");
 
     private final JsonMapper jsonMapper;
     private final Map<String, List<AgentAuditEvent>> eventsBySession = new ConcurrentHashMap<>();
@@ -52,7 +62,7 @@ public class AgentAuditService {
             var copy = new LinkedHashMap<String, Object>();
             map.forEach((key, nested) -> {
                 var name = String.valueOf(key);
-                if ("confirmationToken".equals(name) && nested != null && !nested.toString().isBlank()) {
+                if (isSecret(name) && nested != null && !nested.toString().isBlank()) {
                     copy.put(name, "[redacted]");
                 } else {
                     copy.put(name, redactValue(nested));
@@ -63,7 +73,22 @@ public class AgentAuditService {
         if (value instanceof List<?> list) {
             return list.stream().map(AgentAuditService::redactValue).toList();
         }
+        if (value instanceof String text && embedsSecret(text)) {
+            return "[redacted]";
+        }
         return value;
+    }
+
+    private static boolean isSecret(String name) {
+        return SECRET_FIELDS.contains(name.toLowerCase(Locale.ROOT).replace("_", ""));
+    }
+
+    private static boolean embedsSecret(String text) {
+        var lower = text.toLowerCase(Locale.ROOT);
+        return lower.contains("confirmationtoken=")
+                || lower.contains("servicecredential=")
+                || lower.contains("confirm-")
+                || lower.contains("gov-approve-");
     }
 
     public void technical(String agentSessionId, String userId, String channel, String eventType, Map<String, Object> attributes) {

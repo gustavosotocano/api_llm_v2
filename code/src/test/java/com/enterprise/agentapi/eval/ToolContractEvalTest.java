@@ -16,7 +16,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.ai.mcp.annotation.McpTool;
 import org.springframework.ai.mcp.annotation.McpToolParam;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -75,19 +78,29 @@ class ToolContractEvalTest {
     }
 
     @Test
-    void writeToolMarksConfirmationTokenOptionalAndIdempotencyRequired() {
+    void writeToolsDoNotAskTheModelForAnIdempotencyKey() {
+        for (var toolName : List.of("cancelRecurringSubscription", "proposeCatalogChange", "startCustomerReport")) {
+            var method = Arrays.stream(BankingMcpTools.class.getDeclaredMethods())
+                    .filter(candidate -> candidate.getName().equals(toolName))
+                    .findFirst()
+                    .orElseThrow();
+            var params = Arrays.stream(method.getParameters())
+                    .filter(parameter -> parameter.isAnnotationPresent(McpToolParam.class))
+                    .collect(Collectors.toMap(
+                            parameter -> parameter.getName(),
+                            parameter -> parameter.getAnnotation(McpToolParam.class).required()));
+            assertThat(params).doesNotContainKey("idempotencyKey");
+        }
         var cancel = Arrays.stream(BankingMcpTools.class.getDeclaredMethods())
                 .filter(method -> method.getName().equals("cancelRecurringSubscription"))
                 .findFirst()
                 .orElseThrow();
-        var params = Arrays.stream(cancel.getParameters())
+        var confirmation = Arrays.stream(cancel.getParameters())
                 .filter(parameter -> parameter.isAnnotationPresent(McpToolParam.class))
-                .collect(Collectors.toMap(
-                        parameter -> parameter.getName(),
-                        parameter -> parameter.getAnnotation(McpToolParam.class).required()));
-
-        assertThat(params.get("idempotencyKey")).isTrue();
-        assertThat(params.get("confirmationToken")).isFalse();
+                .filter(parameter -> parameter.getName().equals("confirmationToken"))
+                .findFirst()
+                .orElseThrow();
+        assertThat(confirmation.getAnnotation(McpToolParam.class).required()).isFalse();
     }
 
     @Test
@@ -108,7 +121,7 @@ class ToolContractEvalTest {
     }
 
     @Test
-    void cancelSameKeyDifferentMerchantIsIdempotencyConflict() {
+    void modelSuppliedKeyCannotCollideTwoOperations() {
         var first = ScriptedTurn.of(
                 "cancelRecurringSubscription",
                 "userId", "user-123",
@@ -120,15 +133,15 @@ class ToolContractEvalTest {
                 "merchant", "SPOTIFY",
                 "idempotencyKey", "shared-contract-key");
         var scenario = new GoldenScenario(
-                "contract-idempotency",
-                "Cancel Spotify with reused key",
+                "contract-derived-idempotency",
+                "Cancel Spotify with a model-supplied key",
                 "user-123",
                 "contract-cancel-1",
                 List.of(first, second),
                 EvalExpectation.builder()
                         .requiredTools("cancelRecurringSubscription")
-                        .expectedFinalStatus(SemanticStatus.IDEMPOTENCY_CONFLICT)
-                        .expectedSemanticStatus(SemanticStatus.IDEMPOTENCY_CONFLICT)
+                        .expectedFinalStatus(SemanticStatus.OPERATION_REQUIRES_CONFIRMATION)
+                        .expectedSemanticStatus(SemanticStatus.OPERATION_REQUIRES_CONFIRMATION)
                         .build());
         var verdicts = BehavioralEvaluator.evaluate(scenario.expectation(), harness.run(scenario));
         assertThat(verdicts).allMatch(EvalVerdict::passed);
@@ -168,7 +181,6 @@ class ToolContractEvalTest {
                         "categoryCode", "UTILITIES",
                         "merchants", "",
                         "reason", "needed",
-                        "idempotencyKey", "contract-cat-clarify-1",
                         "userId", "user-123",
                         "agentSessionId", "contract-cat-1")),
                 EvalExpectation.builder()
@@ -185,7 +197,8 @@ class ToolContractEvalTest {
         var searchFields = Arrays.stream(RecurringPaymentSearchRequest.class.getRecordComponents())
                 .map(component -> component.getName())
                 .collect(Collectors.toSet());
-        assertThat(searchFields).containsExactlyInAnyOrder("userId", "category", "merchant", "period", "limit");
+        assertThat(searchFields).containsExactlyInAnyOrder(
+                "userId", "category", "merchant", "period", "limit", "cursor");
         assertThat(searchFields).doesNotContainAnyElementsOf(BehavioralEvaluator.UNSUPPORTED_PARAMETERS);
 
         var cancelFields = Arrays.stream(SubscriptionCancellationRequest.class.getRecordComponents())
@@ -194,5 +207,56 @@ class ToolContractEvalTest {
         assertThat(cancelFields).contains("idempotencyKey", "confirmationToken");
         assertThat(Set.of(PeriodOption.values())).contains(PeriodOption.LAST_3_MONTHS);
         assertThat(CatalogProposalType.values()).contains(CatalogProposalType.NEW_CATEGORY, CatalogProposalType.ADD_MERCHANTS);
+    }
+
+    /**
+     * Pin of tool name, description, hints, and parameter schema.
+     * A change fails until this digest is reviewed and updated on purpose.
+     */
+    @Test
+    void toolContractDigestIsPinned() throws Exception {
+        var canonical = canonicalToolContract();
+        var digest = sha256(canonical);
+        assertThat(digest)
+                .as("Tool contract changed. Review the schema, then update this pin.%n%s", canonical)
+                .isEqualTo("b2c55a2c2be184a5e700550ed814b28fcc3cf5d6716f760e0a3ce44ba6590859");
+    }
+
+    private static String canonicalToolContract() {
+        var methods = Arrays.stream(BankingMcpTools.class.getDeclaredMethods())
+                .filter(method -> method.isAnnotationPresent(McpTool.class))
+                .sorted(Comparator.comparing(method -> method.getAnnotation(McpTool.class).name()))
+                .toList();
+        var document = new StringBuilder();
+        for (var method : methods) {
+            var tool = method.getAnnotation(McpTool.class);
+            var hints = tool.annotations();
+            document.append("tool:").append(tool.name()).append('\n');
+            document.append("description:").append(tool.description().strip()).append('\n');
+            document.append("hints:readOnly=").append(hints.readOnlyHint())
+                    .append(",destructive=").append(hints.destructiveHint())
+                    .append(",idempotent=").append(hints.idempotentHint())
+                    .append('\n');
+            for (var parameter : method.getParameters()) {
+                if (!parameter.isAnnotationPresent(McpToolParam.class)) {
+                    continue;
+                }
+                var param = parameter.getAnnotation(McpToolParam.class);
+                document.append("param:").append(parameter.getName())
+                        .append("|required=").append(param.required())
+                        .append("|description:").append(param.description().strip())
+                        .append('\n');
+            }
+        }
+        return document.toString();
+    }
+
+    private static String sha256(String canonical) throws Exception {
+        var digest = MessageDigest.getInstance("SHA-256").digest(canonical.getBytes(StandardCharsets.UTF_8));
+        var hex = new StringBuilder(digest.length * 2);
+        for (var b : digest) {
+            hex.append(String.format("%02x", b));
+        }
+        return hex.toString();
     }
 }

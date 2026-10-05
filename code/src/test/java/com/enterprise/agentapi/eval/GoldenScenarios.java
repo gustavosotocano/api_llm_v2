@@ -54,11 +54,10 @@ public final class GoldenScenarios {
                 List.of(ScriptedTurn.of(
                         "cancelRecurringSubscription",
                         "userId", "user-123",
-                        "merchant", "NETFLIX",
-                        "idempotencyKey", "eval-netflix-cancel-1")),
+                        "merchant", "NETFLIX")),
                 EvalExpectation.builder()
                         .requiredTools("cancelRecurringSubscription")
-                        .requiredArguments("userId", "merchant", "idempotencyKey")
+                        .requiredArguments("userId", "merchant")
                         .expectedFinalStatus(SemanticStatus.OPERATION_REQUIRES_CONFIRMATION)
                         .requireConfirmationBeforeWrite()
                         .build());
@@ -74,17 +73,15 @@ public final class GoldenScenarios {
                         ScriptedTurn.of(
                                 "cancelRecurringSubscription",
                                 "userId", "user-123",
-                                "merchant", "NETFLIX",
-                                "idempotencyKey", "eval-netflix-cancel-2"),
+                                "merchant", "NETFLIX"),
                         ScriptedTurn.of(
                                 "cancelRecurringSubscription",
                                 "userId", "user-123",
                                 "merchant", "NETFLIX",
-                                "idempotencyKey", "eval-netflix-cancel-2",
                                 "confirmationToken", "${confirmationToken}")),
                 EvalExpectation.builder()
                         .requiredTools("cancelRecurringSubscription")
-                        .requiredArguments("userId", "merchant", "idempotencyKey")
+                        .requiredArguments("userId", "merchant")
                         .expectedFinalStatus(SemanticStatus.SUCCESS)
                         .requireConfirmationBeforeWrite()
                         .build());
@@ -108,7 +105,6 @@ public final class GoldenScenarios {
                                 "categoryCode", "UTILITIES",
                                 "merchants", "ENEL,EPM",
                                 "reason", "User asked for utility bills",
-                                "idempotencyKey", "eval-catalog-propose-1",
                                 "userId", "user-123",
                                 "agentSessionId", "eval-catalog-001")),
                 EvalExpectation.builder()
@@ -168,8 +164,7 @@ public final class GoldenScenarios {
                         ScriptedTurn.of(
                                 "startCustomerReport",
                                 "userId", "user-123",
-                                "period", "LAST_3_MONTHS",
-                                "idempotencyKey", "eval-job-001-report"),
+                                "period", "LAST_3_MONTHS"),
                         ScriptedTurn.of("getJobStatus", "jobId", "${jobId}"),
                         ScriptedTurn.of("wait", "millis", 1200),
                         ScriptedTurn.of("getJobStatus", "jobId", "${jobId}"),
@@ -192,13 +187,11 @@ public final class GoldenScenarios {
                         ScriptedTurn.of(
                                 "cancelRecurringSubscription",
                                 "userId", "user-123",
-                                "merchant", "NETFLIX",
-                                "idempotencyKey", "eval-netflix-cancel-3"),
+                                "merchant", "NETFLIX"),
                         ScriptedTurn.of(
                                 "cancelRecurringSubscription",
                                 "userId", "user-123",
-                                "merchant", "NETFLIX",
-                                "idempotencyKey", "eval-netflix-cancel-3")),
+                                "merchant", "NETFLIX")),
                 EvalExpectation.builder()
                         .requiredTools("cancelRecurringSubscription")
                         .expectedFinalStatus(SemanticStatus.OPERATION_REQUIRES_CONFIRMATION)
@@ -215,8 +208,7 @@ public final class GoldenScenarios {
                 List.of(ScriptedTurn.of(
                         "startCustomerReport",
                         "userId", "user-123",
-                        "period", "YESTERDAY",
-                        "idempotencyKey", "eval-job-002-report")),
+                        "period", "YESTERDAY")),
                 EvalExpectation.builder()
                         .requiredTools("startCustomerReport")
                         .expectedFinalStatus(SemanticStatus.INVALID_PERIOD)

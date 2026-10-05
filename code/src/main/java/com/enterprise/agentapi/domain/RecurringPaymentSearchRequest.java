@@ -5,5 +5,11 @@ public record RecurringPaymentSearchRequest(
         String category,
         String merchant,
         PeriodOption period,
-        Integer limit
-) {}
+        Integer limit,
+        String cursor
+) {
+    public RecurringPaymentSearchRequest(
+            String userId, String category, String merchant, PeriodOption period, Integer limit) {
+        this(userId, category, merchant, period, limit, null);
+    }
+}

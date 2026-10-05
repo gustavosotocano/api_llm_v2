@@ -32,18 +32,18 @@ class ToolDescriptionContractTest {
                 .contains("last_3_months")
                 .contains("do not send dates");
         assertThat(descriptions.get("cancelRecurringSubscription"))
-                .contains("idempotencykey")
-                .contains("confirmationtoken")
-                .contains("human confirmation");
+                .contains("do not invent")
+                .contains("preview")
+                .contains("confirmationtoken");
         assertThat(descriptions.get("proposeCatalogChange"))
                 .contains("does not apply")
                 .contains("human review")
-                .contains("idempotencykey");
+                .contains("backend assigns");
         assertThat(descriptions.get("startCustomerReport"))
                 .contains("jobid")
                 .contains("getjobstatus")
                 .contains("getjobresult")
-                .contains("idempotencykey");
+                .contains("backend assigns");
     }
 
     @Test

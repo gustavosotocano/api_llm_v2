@@ -12,7 +12,9 @@ import com.enterprise.agentapi.application.port.SubscriptionRegistry;
 import com.enterprise.agentapi.application.port.TransactionRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -55,7 +57,7 @@ public class SubscriptionCancellationService implements SubscriptionCommandApi {
                     ? "userId is required. The backend does not assume an account."
                     : "Current identity cannot cancel another user's subscription.";
             return response(denied, message,
-                    userId, request.merchant(), request.idempotencyKey(), null, null, null,
+                    userId, request.merchant(), request.idempotencyKey(), null, null, null, null, null,
                     List.of("Pass the authenticated userId"));
         }
 
@@ -66,15 +68,15 @@ public class SubscriptionCancellationService implements SubscriptionCommandApi {
         if (idempotencyKey == null) {
             return response(SemanticStatus.CLARIFICATION_REQUIRED,
                     "idempotencyKey is required for write operations.",
-                    userId, merchant, null, null, null, null,
-                    List.of("Provide a stable idempotencyKey per cancellation attempt"));
+                    userId, merchant, null, null, null, null, null, null,
+                    List.of("Provide a stable Idempotency-Key for this cancellation attempt"));
         }
 
         if (idempotencyStore.hasDifferentPayload(idempotencyKey, fingerprint)) {
             return response(SemanticStatus.IDEMPOTENCY_CONFLICT,
                     "The same Idempotency-Key was already used with different parameters.",
-                    userId, merchant, idempotencyKey, null, null, null,
-                    List.of("Reuse the original parameters or generate a new idempotencyKey"));
+                    userId, merchant, idempotencyKey, null, null, null, null, null,
+                    List.of("Reuse the original parameters or generate a new Idempotency-Key"));
         }
 
         var cached = idempotencyStore.find(idempotencyKey, SubscriptionCancellationResponse.class);
@@ -92,36 +94,49 @@ public class SubscriptionCancellationService implements SubscriptionCommandApi {
         if (!merchantExistsForUser(userId, merchant)) {
             return response(SemanticStatus.CLARIFICATION_REQUIRED,
                     "Merchant not found for this user. Use a known merchant such as NETFLIX or SPOTIFY.",
-                    userId, merchant, idempotencyKey, null, null, null,
+                    userId, merchant, idempotencyKey, null, null, null, null, null,
                     List.of("NETFLIX", "SPOTIFY"));
         }
 
+        var argumentHash = ConfirmationBinding.argumentHash(userId, merchant);
         if (isBlank(request.confirmationToken())) {
-            var token = confirmationTokenStore.issue(userId, merchant, idempotencyKey);
+            var issued = confirmationTokenStore.issue(userId, merchant, idempotencyKey, argumentHash);
+            var preview = ConfirmationBinding.preview(merchant);
+            var expiresInSeconds = secondsUntil(issued.expiresAt());
             var operationId = "op-" + UUID.randomUUID();
             var pending = response(SemanticStatus.OPERATION_REQUIRES_CONFIRMATION,
-                    "Cancellation requires explicit human confirmation. Ask the user to confirm, then call again with confirmationToken.",
-                    userId, merchant, idempotencyKey, token, operationId, null,
+                    "Cancellation requires explicit human confirmation. Show preview to the user, then call again with confirmationToken.",
+                    userId, merchant, idempotencyKey, issued.token(), preview, expiresInSeconds, operationId, null,
                     List.of(
-                            "Tell the user: cancelling recurring payments for " + merchant,
-                            "After user confirms, call cancelRecurringSubscription with the same idempotencyKey and confirmationToken=" + token));
+                            "Show the user this preview and wait for an explicit yes: " + preview,
+                            "After the user confirms, call cancelRecurringSubscription again with confirmationToken.",
+                            "Do not change userId or merchant. The token is single-use and expires in "
+                                    + expiresInSeconds + " seconds."));
             idempotencyStore.save(idempotencyKey, pending, fingerprint);
             return pending;
         }
 
+        var executeDenied = IdentityGuard.authorizeUserResource(userId);
+        if (executeDenied != null) {
+            return response(executeDenied,
+                    "Current identity cannot cancel another user's subscription.",
+                    userId, merchant, idempotencyKey, null, null, null, null, null,
+                    List.of("Pass the authenticated userId"));
+        }
+
         var pendingConfirmation = confirmationTokenStore.consume(
-                request.confirmationToken(), userId, merchant, idempotencyKey);
+                request.confirmationToken(), userId, merchant, idempotencyKey, argumentHash);
         if (pendingConfirmation.isEmpty()) {
             return response(SemanticStatus.CLARIFICATION_REQUIRED,
-                    "Invalid or expired confirmationToken. Request confirmation again.",
-                    userId, merchant, idempotencyKey, null, null, null,
-                    List.of("Call cancelRecurringSubscription without confirmationToken to obtain a new token"));
+                    "Invalid or expired confirmationToken. The token matches only the previewed operation.",
+                    userId, merchant, idempotencyKey, null, null, null, null, null,
+                    List.of("Call cancelRecurringSubscription without confirmationToken to obtain a new preview"));
         }
 
         if (subscriptionRegistry.isCancelled(userId, merchant)) {
             var alreadyDone = response(SemanticStatus.SUCCESS,
                     "Subscription was already cancelled for this merchant.",
-                    userId, merchant, idempotencyKey, null, "op-existing", Instant.now(),
+                    userId, merchant, idempotencyKey, null, null, null, "op-existing", Instant.now(),
                     List.of());
             idempotencyStore.save(idempotencyKey, alreadyDone, fingerprint);
             return alreadyDone;
@@ -130,25 +145,33 @@ public class SubscriptionCancellationService implements SubscriptionCommandApi {
         subscriptionRegistry.cancel(userId, merchant);
         var executed = response(SemanticStatus.SUCCESS,
                 "Recurring subscription cancelled. Future charges for this merchant will be blocked.",
-                userId, merchant, idempotencyKey, null, "op-" + UUID.randomUUID(), Instant.now(),
+                userId, merchant, idempotencyKey, null, null, null, "op-" + UUID.randomUUID(), Instant.now(),
                 List.of());
         idempotencyStore.save(idempotencyKey, executed, fingerprint);
         return executed;
     }
 
     private boolean merchantExistsForUser(String userId, String merchant) {
-        return transactionRepository.search(userId, Set.of(), merchant,
-                        java.time.LocalDate.of(2020, 1, 1), java.time.LocalDate.now(), 1)
+        return transactionRepository.search(userId, Set.of(), merchant, LocalDate.of(2020, 1, 1), LocalDate.now())
                 .stream()
                 .anyMatch(tx -> tx.normalizedMerchant().equalsIgnoreCase(merchant));
     }
 
+    private static int secondsUntil(Instant expiresAt) {
+        var seconds = Duration.between(Instant.now(), expiresAt).toSeconds();
+        if (seconds < 0) {
+            return 0;
+        }
+        return seconds > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) seconds;
+    }
+
     private SubscriptionCancellationResponse response(SemanticStatus status, String message, String userId,
                                                       String merchant, String idempotencyKey, String confirmationToken,
+                                                      String preview, Integer expiresInSeconds,
                                                       String operationId, Instant executedAt, List<String> suggestions) {
         return new SubscriptionCancellationResponse(
-                status, message, userId, merchant, idempotencyKey, confirmationToken, operationId, executedAt, suggestions,
-                OperationRetry.forStatus(status, null));
+                status, message, userId, merchant, idempotencyKey, confirmationToken, preview, expiresInSeconds,
+                operationId, executedAt, suggestions, OperationRetry.forStatus(status, null));
     }
 
     private String normalizeUserId(String userId) {

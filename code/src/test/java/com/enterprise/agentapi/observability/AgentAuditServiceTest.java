@@ -25,4 +25,21 @@ class AgentAuditServiceTest {
         assertThat(parameters.get("confirmationToken")).isEqualTo("[redacted]");
         assertThat(event.attributes().toString()).doesNotContain("confirm-secret");
     }
+
+    @Test
+    void credentialsAndApprovalTokensAreRedacted() {
+        var audit = new AgentAuditService(JsonMapper.builder().build());
+        audit.ai("session-1", "user-123", "MCP", "TOOL_INVOCATION", Map.of(
+                "userId", "user-123",
+                "serviceCredential", "svc-secret-credential",
+                "approvalToken", "gov-approve-secret",
+                "note", "confirmationToken=confirm-embedded"));
+
+        var stored = audit.eventsForSession("session-1").getFirst().attributes();
+        assertThat(stored.get("userId")).isEqualTo("user-123");
+        assertThat(stored.get("serviceCredential")).isEqualTo("[redacted]");
+        assertThat(stored.get("approvalToken")).isEqualTo("[redacted]");
+        assertThat(stored.get("note")).isEqualTo("[redacted]");
+        assertThat(stored.toString()).doesNotContain("svc-secret-credential", "gov-approve-secret", "confirm-embedded");
+    }
 }

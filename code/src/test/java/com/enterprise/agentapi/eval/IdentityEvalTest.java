@@ -79,8 +79,7 @@ class IdentityEvalTest {
                 List.of(ScriptedTurn.of(
                         "cancelRecurringSubscription",
                         "userId", "user-123",
-                        "merchant", "NETFLIX",
-                        "idempotencyKey", "eval-id-netflix-1")),
+                        "merchant", "NETFLIX")),
                 EvalExpectation.builder().requiredTools("cancelRecurringSubscription").build());
         var trace = harness.run(scenario, new AgentContext(
                 scenario.agentSessionId(), scenario.userId(), "EVAL",

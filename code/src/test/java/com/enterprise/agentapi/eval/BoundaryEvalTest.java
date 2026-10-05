@@ -109,6 +109,38 @@ class BoundaryEvalTest {
     }
 
     @Test
+    void toolSurfaceHasNoEgressChannel() {
+        var tools = Arrays.stream(BankingMcpTools.class.getDeclaredMethods())
+                .filter(method -> method.isAnnotationPresent(McpTool.class))
+                .toList();
+        assertThat(tools).extracting(method -> method.getAnnotation(McpTool.class).name())
+                .containsExactlyInAnyOrder(
+                        "searchRecurringPayments",
+                        "cancelRecurringSubscription",
+                        "proposeCatalogChange",
+                        "startCustomerReport",
+                        "cancelCustomerReport",
+                        "getJobStatus",
+                        "getJobResult");
+        var surface = tools.stream()
+                .map(method -> {
+                    var tool = method.getAnnotation(McpTool.class);
+                    var params = Arrays.stream(method.getParameters())
+                            .filter(parameter -> parameter.isAnnotationPresent(
+                                    org.springframework.ai.mcp.annotation.McpToolParam.class))
+                            .map(parameter -> parameter.getName() + " "
+                                    + parameter.getAnnotation(
+                                            org.springframework.ai.mcp.annotation.McpToolParam.class).description())
+                            .collect(Collectors.joining(" "));
+                    return (method.getName() + " " + tool.name() + " " + tool.description() + " " + params)
+                            .toLowerCase(Locale.ROOT);
+                })
+                .collect(Collectors.joining("\n"));
+        assertThat(surface).doesNotContain(
+                "http://", "https://", "webhook", "mailto:", "smtp", "sendemail", "callback url");
+    }
+
+    @Test
     void toolContextDoesNotSurviveTheMcpCall() {
         AgentContextHolder.set(new AgentContext("leak-session", "user-123", "MCP", IdentityType.USER_DELEGATED));
         var binder = new com.enterprise.agentapi.mcp.McpAgentContextBinder(

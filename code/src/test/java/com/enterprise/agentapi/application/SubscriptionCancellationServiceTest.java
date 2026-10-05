@@ -42,6 +42,22 @@ class SubscriptionCancellationServiceTest {
 
         assertThat(response.status()).isEqualTo(SemanticStatus.OPERATION_REQUIRES_CONFIRMATION);
         assertThat(response.confirmationToken()).startsWith("confirm-");
+        assertThat(response.preview()).contains("NETFLIX");
+        assertThat(response.expiresInSeconds()).isPositive();
+        assertThat(response.suggestions()).noneMatch(suggestion -> suggestion.contains(response.confirmationToken()));
+    }
+
+    @Test
+    void changingTheMerchantInvalidatesTheConfirmationToken() {
+        var pending = service.cancel(new SubscriptionCancellationRequest(
+                "user-123", "NETFLIX", "cancel-netflix-bind", null));
+        var otherOperation = service.cancel(new SubscriptionCancellationRequest(
+                "user-123", "SPOTIFY", "cancel-spotify-bind", pending.confirmationToken()));
+        var replay = service.cancel(new SubscriptionCancellationRequest(
+                "user-123", "NETFLIX", "cancel-netflix-bind", pending.confirmationToken()));
+
+        assertThat(otherOperation.status()).isEqualTo(SemanticStatus.CLARIFICATION_REQUIRED);
+        assertThat(replay.status()).isEqualTo(SemanticStatus.CLARIFICATION_REQUIRED);
     }
 
     @Test

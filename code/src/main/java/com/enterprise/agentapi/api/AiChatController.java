@@ -99,12 +99,14 @@ public class AiChatController {
                             - For "last 3 months", do NOT calculate dates. Send period = LAST_3_MONTHS.
                             - Do not send fromDate or toDate. The backend calculates dates.
                             - If the tool returns SUCCESS, use merchantSummaries as the source of truth.
+                            - If truncated is true, continue with cursor = nextCursor. Do not invent the missing rows.
+                            - totalMatching is the full count. resultCount is only this page.
 
                             Cancellation rules (human-in-the-loop):
-                            - Always send idempotencyKey (e.g. %s-netflix-cancel-1).
+                            - Do not invent an idempotency key. The backend assigns one for session %s.
                             - First call WITHOUT confirmationToken.
-                            - If status is OPERATION_REQUIRES_CONFIRMATION, ask the user to confirm explicitly.
-                            - Second call WITH confirmationToken from the tool response and the SAME idempotencyKey.
+                            - If status is OPERATION_REQUIRES_CONFIRMATION, show the preview field to the user and ask for an explicit yes.
+                            - Second call WITH confirmationToken from the tool response. Do not change userId or merchant.
                             - Never claim cancellation succeeded unless status is SUCCESS.
 
                             Catalog governance:
@@ -123,7 +125,7 @@ public class AiChatController {
                             If a report status is CANCELLED, stop polling. Do not call getJobResult.
                             Obey the retry field: RETRY_AFTER waits retryAfterSeconds; IN_PROGRESS polls;
                             DO_NOT_RETRY, ALREADY_COMPLETED, and PERMANENT_FAILURE do not repeat the same call.
-                            startCustomerReport and proposeCatalogChange require an idempotencyKey.
+                            Do not invent an idempotency key for startCustomerReport or proposeCatalogChange. The backend assigns one.
 
                             Never claim that you called a tool unless tool output is actually provided.
                             Never invent tool responses.

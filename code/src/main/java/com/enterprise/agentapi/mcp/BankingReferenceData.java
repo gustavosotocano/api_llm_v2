@@ -51,10 +51,11 @@ public class BankingReferenceData {
                 "humanInTheLoop", true,
                 "steps", List.of(
                         "1. Call cancelRecurringSubscription WITHOUT confirmationToken.",
-                        "2. If status is OPERATION_REQUIRES_CONFIRMATION, show confirmationToken to the user and ask explicit confirmation.",
-                        "3. Call again with the SAME idempotencyKey and confirmationToken.",
+                        "2. If status is OPERATION_REQUIRES_CONFIRMATION, show the preview field to the user and ask for an explicit yes.",
+                        "3. Call again with confirmationToken. Do not change userId or merchant.",
                         "4. Only report success when status is SUCCESS."),
-                "idempotency", "Always send a stable idempotencyKey per cancellation attempt.",
+                "idempotency", "The backend assigns the idempotency key from the session and the operation. Do not invent one.",
+                "confirmation", "The token is single-use, expires, and matches only the previewed user and merchant.",
                 "agentSessionId", "Pass agentSessionId on every tool call for rate limiting and audit.",
                 "knownMerchants", List.of("NETFLIX", "SPOTIFY"));
     }

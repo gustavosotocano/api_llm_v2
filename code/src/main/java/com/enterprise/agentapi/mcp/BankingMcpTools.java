@@ -27,7 +27,8 @@ public class BankingMcpTools {
                     Search recurring bank payments by category or merchant.
                     Read-only. For streaming use category STREAMING.
                     For relative periods send period LAST_3_MONTHS (do not send dates).
-                    Pass agentSessionId for rate limiting, budget, and audit.
+                    Results are bounded. truncated, totalMatching, and nextCursor say whether more rows exist.
+                    Pass cursor from nextCursor to continue. Pass agentSessionId for rate limiting, budget, and audit.
                     """,
             generateOutputSchema = false,
             annotations = @McpTool.McpAnnotations(readOnlyHint = true, destructiveHint = false, idempotentHint = true))
@@ -37,18 +38,20 @@ public class BankingMcpTools {
             @McpToolParam(description = "Optional merchant filter", required = false) String merchant,
             @McpToolParam(description = "Period: LAST_30_DAYS, LAST_3_MONTHS, LAST_6_MONTHS, CURRENT_MONTH, PREVIOUS_MONTH") String period,
             @McpToolParam(description = "Max transactions to return", required = false) Integer limit,
+            @McpToolParam(description = "Continuation cursor from nextCursor", required = false) String cursor,
             @McpToolParam(description = "Agent session id for rate limit, budget, and audit", required = false) String agentSessionId,
             McpMeta meta) {
         return invoke("searchRecurringPayments", agentSessionId, userId, meta,
-                () -> operations.searchRecurringPayments(userId, category, merchant, period, limit));
+                () -> operations.searchRecurringPayments(userId, category, merchant, period, limit, cursor));
     }
 
     @McpTool(
             name = "cancelRecurringSubscription",
             description = """
                     Cancel recurring payments for a merchant. Write operation.
-                    Requires idempotencyKey. First call without confirmationToken for human confirmation.
-                    Then call again with confirmationToken from the response.
+                    The backend assigns the idempotency key from the session and this operation. Do not invent one.
+                    First call without confirmationToken. Show the preview field to the user and wait for explicit confirmation.
+                    Then call again with confirmationToken. Do not change userId or merchant between the two calls.
                     Pass agentSessionId for rate limiting, budget, and audit.
                     """,
             generateOutputSchema = false,
@@ -56,19 +59,18 @@ public class BankingMcpTools {
     public CallToolResult cancelRecurringSubscription(
             @McpToolParam(description = "Authenticated user id") String userId,
             @McpToolParam(description = "Merchant such as NETFLIX or SPOTIFY") String merchant,
-            @McpToolParam(description = "Stable idempotency key for this cancellation attempt") String idempotencyKey,
             @McpToolParam(description = "Confirmation token from OPERATION_REQUIRES_CONFIRMATION", required = false) String confirmationToken,
             @McpToolParam(description = "Agent session id for rate limit, budget, and audit", required = false) String agentSessionId,
             McpMeta meta) {
         return invoke("cancelRecurringSubscription", agentSessionId, userId, meta,
-                () -> operations.cancelRecurringSubscription(userId, merchant, idempotencyKey, confirmationToken));
+                () -> operations.cancelRecurringSubscription(userId, merchant, confirmationToken));
     }
 
     @McpTool(
             name = "proposeCatalogChange",
             description = """
                     Propose a controlled catalog change for human review. Does NOT apply changes.
-                    Requires idempotencyKey. Repeating the same key returns the existing proposal.
+                    The backend assigns the idempotency key. Repeating the same proposal returns the existing one.
                     Use when category is unknown or new merchants are needed.
                     proposalType: NEW_CATEGORY | ADD_MERCHANTS.
                     merchants: comma-separated (HBO_MAX,APPLE_TV).
@@ -81,20 +83,19 @@ public class BankingMcpTools {
             @McpToolParam(description = "Category code") String categoryCode,
             @McpToolParam(description = "Comma-separated merchant codes") String merchants,
             @McpToolParam(description = "Business justification") String reason,
-            @McpToolParam(description = "Stable idempotency key for this proposal") String idempotencyKey,
             @McpToolParam(description = "User id") String userId,
             @McpToolParam(description = "Agent session id", required = false) String agentSessionId,
             McpMeta meta) {
         return invoke("proposeCatalogChange", agentSessionId, userId, meta,
                 () -> operations.proposeCatalogChange(
-                        proposalType, categoryCode, merchants, reason, userId, agentSessionId, idempotencyKey));
+                        proposalType, categoryCode, merchants, reason, userId, agentSessionId));
     }
 
     @McpTool(
             name = "startCustomerReport",
             description = """
                     Start a long-running customer report. Do not wait for the result.
-                    Requires idempotencyKey. Repeating the same key returns the existing job.
+                    The backend assigns the idempotency key. Repeating the same report returns the existing job.
                     Returns ACCEPTED with jobId. Then poll getJobStatus and finally getJobResult.
                     The tool composes customer, transaction, and subscription domain APIs.
                     Do not call those domain APIs separately.
@@ -104,11 +105,10 @@ public class BankingMcpTools {
     public CallToolResult startCustomerReport(
             @McpToolParam(description = "Authenticated user id") String userId,
             @McpToolParam(description = "Period enum, default LAST_3_MONTHS", required = false) String period,
-            @McpToolParam(description = "Stable idempotency key for this report") String idempotencyKey,
             @McpToolParam(description = "Agent session id", required = false) String agentSessionId,
             McpMeta meta) {
         return invoke("startCustomerReport", agentSessionId, userId, meta,
-                () -> operations.startCustomerReport(userId, period, idempotencyKey));
+                () -> operations.startCustomerReport(userId, period));
     }
 
     @McpTool(

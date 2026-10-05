@@ -3,6 +3,7 @@ package com.enterprise.agentapi.ai;
 import com.enterprise.agentapi.agent.AgentRateLimitExceededException;
 import com.enterprise.agentapi.agent.AgentRateLimitSupport;
 import com.enterprise.agentapi.agent.BudgetExceededException;
+import com.enterprise.agentapi.agent.IdempotencyKeys;
 import com.enterprise.agentapi.agent.RateLimitScope;
 import com.enterprise.agentapi.agent.RetryBudgetExceededException;
 import com.enterprise.agentapi.agent.ToolAccessDeniedException;
@@ -25,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -54,35 +54,34 @@ public class BankingToolOperations {
     }
 
     public RecurringPaymentSearchResponse searchRecurringPayments(
-            String userId, String category, String merchant, String period, Integer limit) {
+            String userId, String category, String merchant, String period, Integer limit, String cursor) {
         try {
             return agentToolSupport.execute("searchRecurringPayments", toolParams(
                     "userId", userId,
                     "category", category,
                     "merchant", merchant,
                     "period", period,
-                    "limit", limit), () -> {
+                    "limit", limit,
+                    "cursor", cursor), () -> {
                 if (PeriodExpressions.looksLikeDateRange(period)) {
-                    return new RecurringPaymentSearchResponse(
+                    return RecurringPaymentSearchResponse.empty(
                             SemanticStatus.INVALID_DATE_RANGE,
                             "Raw dates are not accepted. Send a semantic period. The backend calculates the range.",
                             category, List.of(), PeriodExpressions.semanticPeriods(),
-                            null, null, null, List.of(), List.of(), BigDecimal.ZERO, 0,
                             OperationRetry.forStatus(SemanticStatus.INVALID_DATE_RANGE, null));
                 }
                 PeriodOption periodOption;
                 try {
                     periodOption = PeriodOption.valueOf(period);
                 } catch (RuntimeException ex) {
-                    return new RecurringPaymentSearchResponse(
+                    return RecurringPaymentSearchResponse.empty(
                             SemanticStatus.INVALID_PERIOD,
                             "Unsupported period. Send a semantic period enum, not raw dates.",
                             category, List.of(), PeriodExpressions.semanticPeriods(),
-                            null, null, null, List.of(), List.of(), BigDecimal.ZERO, 0,
                             OperationRetry.forStatus(SemanticStatus.INVALID_PERIOD, null));
                 }
                 var request = new RecurringPaymentSearchRequest(
-                        userId, category, merchant, periodOption, limit == null ? 100 : limit);
+                        userId, category, merchant, periodOption, limit == null ? 100 : limit, cursor);
                 log.info("Tool searchRecurringPayments: userId={}, category={}, merchant={}, period={}, limit={}",
                         request.userId(), request.category(), request.merchant(), request.period(), request.limit());
                 var response = searchService.searchRecurringPayments(request);
@@ -102,7 +101,8 @@ public class BankingToolOperations {
     }
 
     public SubscriptionCancellationResponse cancelRecurringSubscription(
-            String userId, String merchant, String idempotencyKey, String confirmationToken) {
+            String userId, String merchant, String confirmationToken) {
+        var idempotencyKey = IdempotencyKeys.derive("cancelRecurringSubscription", userId, merchant);
         try {
             return agentToolSupport.execute("cancelRecurringSubscription", toolParams(
                     "userId", userId,
@@ -130,7 +130,9 @@ public class BankingToolOperations {
 
     public CatalogChangeResponse proposeCatalogChange(
             String proposalType, String categoryCode, String merchantsCsv, String reason,
-            String userId, String agentSessionId, String idempotencyKey) {
+            String userId, String agentSessionId) {
+        var idempotencyKey = IdempotencyKeys.derive(
+                "proposeCatalogChange", userId, proposalType, categoryCode, merchantsCsv, reason);
         try {
             return agentToolSupport.execute("proposeCatalogChange", toolParams(
                     "proposalType", proposalType,
@@ -176,7 +178,8 @@ public class BankingToolOperations {
         }
     }
 
-    public JobResponse startCustomerReport(String userId, String period, String idempotencyKey) {
+    public JobResponse startCustomerReport(String userId, String period) {
+        var idempotencyKey = IdempotencyKeys.derive("startCustomerReport", userId, period);
         try {
             return agentToolSupport.execute("startCustomerReport", toolParams(
                     "userId", userId, "period", period, "idempotencyKey", idempotencyKey), () -> {
@@ -235,38 +238,34 @@ public class BankingToolOperations {
     }
 
     private RecurringPaymentSearchResponse accessDeniedSearch(ToolAccessDeniedException ex) {
-        return new RecurringPaymentSearchResponse(
+        return RecurringPaymentSearchResponse.empty(
                 SemanticStatus.INSUFFICIENT_PERMISSIONS, ex.getMessage(), null, List.of(),
                 List.of("Use a workflow that includes this tool, or elevate to FULL"),
-                null, null, null, List.of(), List.of(), BigDecimal.ZERO, 0,
                 OperationRetry.forStatus(SemanticStatus.INSUFFICIENT_PERMISSIONS, null));
     }
 
     private RecurringPaymentSearchResponse rateLimitedSearch(AgentRateLimitExceededException ex) {
-        return new RecurringPaymentSearchResponse(
+        return RecurringPaymentSearchResponse.empty(
                 AgentRateLimitSupport.semanticStatus(ex),
                 ex.getMessage(), null, List.of(),
                 List.of("Retry after " + ex.retryAfterSeconds() + " seconds",
                         ex.scope() == RateLimitScope.LOOP
                                 ? "Avoid chaining the same tool in a loop"
                                 : "Reduce request frequency"),
-                null, null, null, List.of(), List.of(), BigDecimal.ZERO, 0,
                 OperationRetry.forStatus(AgentRateLimitSupport.semanticStatus(ex), ex.retryAfterSeconds()));
     }
 
     private RecurringPaymentSearchResponse retryBudgetSearch(RetryBudgetExceededException ex) {
-        return new RecurringPaymentSearchResponse(
+        return RecurringPaymentSearchResponse.empty(
                 SemanticStatus.RETRY_BUDGET_EXCEEDED, ex.getMessage(), null, List.of(),
                 List.of("Do not retry this operation. The retry budget is exhausted."),
-                null, null, null, List.of(), List.of(), BigDecimal.ZERO, 0,
                 OperationRetry.forStatus(SemanticStatus.RETRY_BUDGET_EXCEEDED, null));
     }
 
     private RecurringPaymentSearchResponse budgetExceededSearch(BudgetExceededException ex) {
-        return new RecurringPaymentSearchResponse(
+        return RecurringPaymentSearchResponse.empty(
                 SemanticStatus.BUDGET_EXCEEDED, ex.getMessage(), null, List.of(),
                 List.of("Wait for a new session or reduce high-cost tool use"),
-                null, null, null, List.of(), List.of(), BigDecimal.ZERO, 0,
                 OperationRetry.forStatus(SemanticStatus.BUDGET_EXCEEDED, null));
     }
 
@@ -315,7 +314,7 @@ public class BankingToolOperations {
             String userId, String merchant, String idempotencyKey, ToolAccessDeniedException ex) {
         return new SubscriptionCancellationResponse(
                 SemanticStatus.INSUFFICIENT_PERMISSIONS, ex.getMessage(),
-                userId, merchant, idempotencyKey, null, null, null,
+                userId, merchant, idempotencyKey, null, null, null, null, null,
                 List.of("Use CANCELLATION or FULL workflow for write tools"),
                 OperationRetry.forStatus(SemanticStatus.INSUFFICIENT_PERMISSIONS, null));
     }
@@ -324,8 +323,8 @@ public class BankingToolOperations {
             String userId, String merchant, String idempotencyKey, AgentRateLimitExceededException ex) {
         return new SubscriptionCancellationResponse(
                 AgentRateLimitSupport.semanticStatus(ex), ex.getMessage(),
-                userId, merchant, idempotencyKey, null, null, null,
-                List.of("Wait and retry with the same idempotencyKey",
+                userId, merchant, idempotencyKey, null, null, null, null, null,
+                List.of("Wait and retry the same operation",
                         "Retry after " + ex.retryAfterSeconds() + " seconds"),
                 OperationRetry.forStatus(AgentRateLimitSupport.semanticStatus(ex), ex.retryAfterSeconds()));
     }
@@ -334,7 +333,7 @@ public class BankingToolOperations {
             String userId, String merchant, String idempotencyKey, RetryBudgetExceededException ex) {
         return new SubscriptionCancellationResponse(
                 SemanticStatus.RETRY_BUDGET_EXCEEDED, ex.getMessage(),
-                userId, merchant, idempotencyKey, null, null, null,
+                userId, merchant, idempotencyKey, null, null, null, null, null,
                 List.of("Do not retry this cancellation. The retry budget is exhausted."),
                 OperationRetry.forStatus(SemanticStatus.RETRY_BUDGET_EXCEEDED, null));
     }
@@ -343,8 +342,8 @@ public class BankingToolOperations {
             String userId, String merchant, String idempotencyKey, BudgetExceededException ex) {
         return new SubscriptionCancellationResponse(
                 SemanticStatus.BUDGET_EXCEEDED, ex.getMessage(),
-                userId, merchant, idempotencyKey, null, null, null,
-                List.of("Wait and retry with the same idempotencyKey after budget resets"),
+                userId, merchant, idempotencyKey, null, null, null, null, null,
+                List.of("Wait and retry the same operation after the budget resets"),
                 OperationRetry.forStatus(SemanticStatus.BUDGET_EXCEEDED, null));
     }
 
