@@ -36,7 +36,7 @@ class CustomerReportJobServiceTest {
     @BeforeEach
     void setUp() {
         var clock = Clock.fixed(LocalDate.of(2026, 5, 20).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
-        var transactions = new InMemoryTransactionRepository();
+        var transactions = new InMemoryTransactionRepository(clock);
         var search = new TransactionSearchService(transactions, new InMemoryCategoryDictionaryRepository(), clock);
         var cancellation = new SubscriptionCancellationService(
                 new InMemoryIdempotencyStore(),

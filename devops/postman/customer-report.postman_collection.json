@@ -1,0 +1,123 @@
+{
+  "info": {
+    "name": "Customer report",
+    "description": "CustomerReportJobService. Start the job, poll status, then fetch the result. Import local.postman_environment.json and select it before sending.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Start report",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const body = pm.response.json();",
+              "if (body.jobId) {",
+              "  pm.environment.set('jobId', body.jobId);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-Agent-Session-Id",
+            "value": "{{agentSessionId}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "{{reportIdempotencyKey}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/debug/jobs/reports?userId={{userId}}&period=LAST_3_MONTHS",
+          "host": ["{{baseUrl}}"],
+          "path": ["debug", "jobs", "reports"],
+          "query": [
+            {
+              "key": "userId",
+              "value": "{{userId}}"
+            },
+            {
+              "key": "period",
+              "value": "LAST_3_MONTHS"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get job status",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-Agent-Session-Id",
+            "value": "{{agentSessionId}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/debug/jobs/{{jobId}}?userId={{userId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["debug", "jobs", "{{jobId}}"],
+          "query": [
+            {
+              "key": "userId",
+              "value": "{{userId}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get job result",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-Agent-Session-Id",
+            "value": "{{agentSessionId}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/debug/jobs/{{jobId}}/result?userId={{userId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["debug", "jobs", "{{jobId}}", "result"],
+          "query": [
+            {
+              "key": "userId",
+              "value": "{{userId}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Cancel job",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-Agent-Session-Id",
+            "value": "{{agentSessionId}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/debug/jobs/{{jobId}}/cancel?userId={{userId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["debug", "jobs", "{{jobId}}", "cancel"],
+          "query": [
+            {
+              "key": "userId",
+              "value": "{{userId}}"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

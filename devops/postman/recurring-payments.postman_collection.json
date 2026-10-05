@@ -1,0 +1,174 @@
+{
+  "info": {
+    "name": "Recurring payments",
+    "description": "Debug API for search and cancellation. Import local.postman_environment.json and select it before sending.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Search",
+      "item": [
+        {
+          "name": "Search streaming last 3 months",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.environment.set('nextCursor', body.nextCursor || '');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Agent-Session-Id",
+                "value": "{{agentSessionId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"category\": \"STREAMING\",\n  \"period\": \"LAST_3_MONTHS\",\n  \"limit\": 100\n}"
+            },
+            "url": "{{baseUrl}}/debug/transactions/search-recurring"
+          }
+        },
+        {
+          "name": "Search streaming page",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.environment.set('nextCursor', body.nextCursor || '');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Agent-Session-Id",
+                "value": "{{agentSessionId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"category\": \"STREAMING\",\n  \"period\": \"LAST_3_MONTHS\",\n  \"limit\": 2\n}"
+            },
+            "url": "{{baseUrl}}/debug/transactions/search-recurring"
+          }
+        },
+        {
+          "name": "Continue search from cursor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Agent-Session-Id",
+                "value": "{{agentSessionId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"category\": \"STREAMING\",\n  \"period\": \"LAST_3_MONTHS\",\n  \"limit\": 2,\n  \"cursor\": \"{{nextCursor}}\"\n}"
+            },
+            "url": "{{baseUrl}}/debug/transactions/search-recurring"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cancel subscription",
+      "item": [
+        {
+          "name": "Request confirmation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.confirmationToken) {",
+                  "  pm.environment.set('confirmationToken', body.confirmationToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Agent-Session-Id",
+                "value": "{{agentSessionId}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{cancelIdempotencyKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"merchant\": \"NETFLIX\"\n}"
+            },
+            "url": "{{baseUrl}}/debug/subscriptions/cancel"
+          }
+        },
+        {
+          "name": "Execute cancellation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Agent-Session-Id",
+                "value": "{{agentSessionId}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{cancelIdempotencyKey}}"
+              },
+              {
+                "key": "X-Confirmation-Token",
+                "value": "{{confirmationToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"merchant\": \"NETFLIX\"\n}"
+            },
+            "url": "{{baseUrl}}/debug/subscriptions/cancel"
+          }
+        }
+      ]
+    }
+  ]
+}

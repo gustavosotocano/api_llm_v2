@@ -59,7 +59,7 @@ public final class EvalHarness {
                 List.of(recorder),
                 new RetryBudgetService(properties));
         var dictionary = new InMemoryCategoryDictionaryRepository();
-        var transactions = new InMemoryTransactionRepository();
+        var transactions = new InMemoryTransactionRepository(clock);
         var search = new TransactionSearchService(transactions, dictionary, clock);
         var subscriptions = new InMemorySubscriptionRegistry();
         var idempotency = new InMemoryIdempotencyStore();

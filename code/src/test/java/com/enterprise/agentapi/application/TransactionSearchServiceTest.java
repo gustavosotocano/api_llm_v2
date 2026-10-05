@@ -27,7 +27,7 @@ class TransactionSearchServiceTest {
     @BeforeEach
     void setUp() {
         var clock = Clock.fixed(LocalDate.of(2026, 5, 20).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
-        service = new TransactionSearchService(new InMemoryTransactionRepository(), new InMemoryCategoryDictionaryRepository(), clock);
+        service = new TransactionSearchService(new InMemoryTransactionRepository(clock), new InMemoryCategoryDictionaryRepository(), clock);
         AgentContextHolder.set(new AgentContext("session-1", "user-123", "TEST", IdentityType.USER_DELEGATED));
     }
 
